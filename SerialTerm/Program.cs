@@ -17,7 +17,7 @@ namespace TerminalConsole
 
         /// <summary>
         /// SimpleTerm - Simple serial port terminal program.
-        /// (c)2021 AKsevenFour - https://github.com/AdamKeher/SimpleTerm
+        /// (c)2021 AKsevenFour - https://github.com/AdamKeher/SerialTerm
         /// </summary>
         ///  <param name="invocationContext"></param>
         ///  <param name="listPorts">List all serial ports</param>
@@ -39,10 +39,10 @@ namespace TerminalConsole
             string handshake = "none",
             bool disconnectExit = false)
         {
-            var command = new RootCommand
-            {
-                new Option(new [] {"--AdamTest", "-at"}),
-            };
+            //var command = new RootCommand
+            //{
+            //    new Option(new [] {"--AdamTest", "-at"}),
+            //};
 
             Console.WriteLine("\u001b[31mSerial\u001b[31;1mTERM\u001b[37m v0.2 (c)2021 \u001b[32m\u001b[7mAKsevenFour\u001b[0m.");
 
