@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Version>0.1.0</Version>
+    <Authors>Adam Keher</Authors>
+    <Company>AKsevenFour</Company>
+    <Copyright>(c)2021 AKsevenFour</Copyright>
+    <PackageProjectUrl>https://github.com/AdamKeher/SimpleTerm</PackageProjectUrl>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <RepositoryUrl></RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine.DragonFruit" Version="0.3.0-alpha.20158.1" />
+    <PackageReference Include="System.IO.Ports" Version="6.0.0-preview.1.21102.12" />
+  </ItemGroup>
+
+</Project>
