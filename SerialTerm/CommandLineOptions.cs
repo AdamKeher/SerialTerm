@@ -1,6 +1,6 @@
 ﻿namespace TerminalConsole
 {
-    public class ConnectionConfig
+    public class CommandLineOptions
     {
         public string port { get; set; }
         public int baud { get; set; }
