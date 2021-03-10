@@ -14,94 +14,147 @@ namespace TerminalConsole
     {
         static SerialPort _serialPort;
         static bool _continue;
+        private static InvocationContext _invocationContext;
 
-        /// <summary>
-        /// SimpleTerm - Simple serial port terminal program.
-        /// (c)2021 AKsevenFour - https://github.com/AdamKeher/SerialTerm
-        /// </summary>
-        ///  <param name="invocationContext"></param>
-        ///  <param name="listPorts">List all serial ports</param>
-        ///  <param name="port">Set the serial port to listen on</param>
-        ///  <param name="baud">Set serial port baud rate</param>
-        ///  <param name="dataBits">Sets the standard length of data bits per byte (5..[8])</param>
-        ///  <param name="parity">Sets the parity-checking protocol ([None] | Mark | Even | Odd | Space)</param>
-        ///  <param name="stopBits">Sets the standard number of stopbits per byte ([One] | OnePointFive | Two | )</param>
-        ///  <param name="handshake">Specifies the control protocol used in establishing a serial port communication ([None] | RTS | XonXoff | RTSXonXoff)</param>
-        ///  <param name="disconnectExit">Exit terminal on disconnection</param>
-        static void Main(
-            InvocationContext invocationContext,
-            bool listPorts = false,
-            string port = null,
-            int baud = 115200,
-            int dataBits = 8,
-            string parity = "none",
-            string stopBits = "one",
-            string handshake = "none",
-            bool disconnectExit = false)
+        public static int Main(string[] args)
         {
-            //var command = new RootCommand
-            //{
-            //    new Option(new [] {"--AdamTest", "-at"}),
-            //};
+            // create a root command with some options
+            var rootCommand = CreateRootCommand(
+                "rootCommand",
+                "SimpleTerm - Simple serial port terminal program. (c)2021 AKsevenFour - https://github.com/AdamKeher/SerialTerm",
+                RootCommmandHandler);
 
-            Console.WriteLine("\u001b[31mSerial\u001b[31;1mTERM\u001b[37m v0.2 (c)2021 \u001b[32m\u001b[7mAKsevenFour\u001b[0m.");
+            // create list ports command
+            rootCommand.AddCommand(
+                new Command("list", "List all serial ports")
+                {
+                    Handler = CommandHandler.Create((Action<InvocationContext>)(ListCommmandHandler))
+                });
 
-            if (listPorts)
+            // Parse the incoming args and invoke the handler
+            return rootCommand.InvokeAsync(args).Result;
+        }
+
+        private static RootCommand CreateRootCommand(string name, string description, Action<InvocationContext, ConnectionConfig> action)
+        {
+            var rootCommand = new RootCommand(name);
+            rootCommand.Description = description;
+            rootCommand.Handler = CommandHandler.Create(action);
+
+            rootCommand.AddOption(new Option<string>(
+                new string[] { "--port", "-P" },
+                "Set the serial port to listen on"));
+
+            rootCommand.AddOption(new Option<int>(
+                    new string[] { "--baud", "-b" },
+                    getDefaultValue: () => 115200,
+                    "Set serial port baud rate"));
+
+            rootCommand.AddOption(new Option<bool>(
+                    new string[] { "--disconnect-exit", "-de" },
+                    getDefaultValue: () => false,
+                    "Exit terminal on disconnection"));
+
+            var dbOption = new Option<int>(
+                new string[] { "--data-bits", "-db" },
+                getDefaultValue: () => 8,
+                "Sets the standard length of data bits per byte");
+            dbOption.AddSuggestions("5", "6", "7", "8");
+            dbOption.AddValidator(optionResult => {
+                var suggestions = optionResult.Option.GetSuggestions().ToList();
+                if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
+                {
+                    return $"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}";
+                }
+                return null;
+            });
+            rootCommand.AddOption(dbOption);
+
+            var parityOption = new Option<string>(
+                new string[] { "--parity", "-pa" },
+                getDefaultValue: () => "None",
+                "Sets the parity-checking protocol");
+            parityOption.AddSuggestions("None", "Mark", "Even", "Odd", "Space");
+            parityOption.AddValidator(optionResult =>
             {
-                ListPorts(invocationContext);
-                return;
-            }
+                var suggestions = optionResult.Option.GetSuggestions().ToList();
+                if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
+                {
+                    return $"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}";
+                }
+                return null;
+            });
+            rootCommand.AddOption(parityOption);
 
-            // validate inputs
-            if (dataBits < 5 || dataBits > 8)
+            var sbOption = new Option<string>(
+                new string[] { "--stop-bits", "-sb" },
+                getDefaultValue: () => "One",
+                "Sets the standard number of stopbits per byte");
+            sbOption.AddSuggestions("One", "OnePointFive", "Two");
+            sbOption.AddValidator(optionResult =>
             {
-                Console.WriteLine("Invalid data-bits value, the correct range is (5..[8])");
-                return;
-            }
+                var suggestions = optionResult.Option.GetSuggestions().ToList();
+                if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
+                {
+                    return $"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}";
+                }
+                return null;
+            });
+            rootCommand.AddOption(sbOption);
 
-            List<string> _validOptions = new List<string>() { "none", "mark", "even", "odd", "space" };
-            if (!_validOptions.Contains(parity.ToLower()))
+            var hsOption = new Option<string>(
+                new string[] { "--handshake", "-hs" },
+                getDefaultValue: () => "None",
+                "Specifies the control protocol used in establishing a serial port communication");
+            hsOption.AddSuggestions("None", "RTS", "XonXoff", "RTSXonXoff");
+            hsOption.AddValidator(optionResult =>
             {
-                Console.WriteLine("Invalid parity value, the correct values are ([none] | mark | even | odd | space)");
-                return;
-            }
+                var suggestions = optionResult.Option.GetSuggestions().ToList();
+                if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
+                {
+                    return $"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}";
+                }
+                return null;
+            });
+            rootCommand.AddOption(hsOption);
 
-            _validOptions.Clear();
-            _validOptions.AddRange(new String[] { "one", "onepointfive", "two" });
-            if (!_validOptions.Contains(stopBits.ToLower()))
-            {
-                Console.WriteLine("Invalid stop-bits value, the correct values are ([one] | onepointfive | two)");
-                return;
-            }
+            return rootCommand;
+        }
 
-            _validOptions.Clear();
-            _validOptions.AddRange(new String[] { "none", "xonxoff", "rts", "rtsxonxoff" });
-            if (!_validOptions.Contains(handshake.ToLower()))
-            {
-                Console.WriteLine("Invalid handshake value, the correct values are ([none] | xonxoff | rts | rtsxonxoff)");
-                return;
-            }
+        static void ListCommmandHandler(InvocationContext context)
+        {
+            _invocationContext = context;
+
+            Console.WriteLine("Serial Ports");
+            Console.WriteLine("------------");
+            ListPorts();
+        }
+        
+        static void RootCommmandHandler(InvocationContext context, ConnectionConfig config)
+        {
+            _invocationContext = context;
 
             // setup serial port
-            _serialPort = new SerialPort();
-            _serialPort.PortName = port ?? SetPortName(invocationContext);
-            _serialPort.BaudRate = baud;
-            _serialPort.DataBits = dataBits;
-            _serialPort.Parity = SetParity(parity);
-            _serialPort.StopBits = SetStopBits(stopBits);
-            _serialPort.Handshake = SetHandshake(handshake);
-            _serialPort.ReadTimeout = 500;
-            _serialPort.WriteTimeout = 500;
+            _serialPort = new SerialPort()
+            {
+                PortName = config.port ?? SetPortName(),
+                BaudRate = config.baud,
+                DataBits = config.dataBits,
+                Parity = SetParity(config.parity),
+                StopBits = SetStopBits(config.stopBits),
+                Handshake = SetHandshake(config.handshake),
+                ReadTimeout = 500,
+                WriteTimeout = 500
+            };
             _serialPort.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
             _serialPort.ErrorReceived += new SerialErrorReceivedEventHandler(ErrorReceivedHandler);
 
             // open serial port
-            Console.WriteLine("Connecting to: {0}", SerialPortDetails(_serialPort));
+            Console.WriteLine("Connecting to: {0}", SerialPortDetails());
 
             try
             {
                 _serialPort.Open();
-
             }
             catch (Exception)
             {
@@ -109,60 +162,59 @@ namespace TerminalConsole
             }
 
             // wait while receiving data and handle disconnection and control keys
-            bool _reconnecting = false;
-            bool _paused = false;
+            bool reconnecting = false;
+            bool paused = false;
             _continue = true;
             while (_continue)
             {
                 // handle serial disconnection and reconnection
-                if (!_paused && !_serialPort.IsOpen)
+                if (!paused && !_serialPort.IsOpen)
                 {
                     try
                     {
                         _serialPort.Open();
-                        _reconnecting = false;
+                        reconnecting = false;
                         Console.WriteLine("Reconnected.");
                     }
                     catch (System.IO.FileNotFoundException)
                     {
-                        if (!_reconnecting) Console.WriteLine("Disconnected.");
-                        if (disconnectExit)
+                        if (!reconnecting) Console.WriteLine("Disconnected.");
+                        if (config.disconnectExit)
                             return;
-                        _reconnecting = true;
+                        reconnecting = true;
                     }
                     catch (System.IO.IOException) { }
-
                 }
 
                 // control keys
                 if (Console.KeyAvailable)
                 {
-                    _paused = processKeys(invocationContext, _paused);
+                    paused = ProcessKeys(paused);
                 }
 
                 Thread.Sleep(100);
             }
         }
 
-        private static bool processKeys(InvocationContext invocationContext, bool _paused)
+        private static bool ProcessKeys(bool paused)
         {
-            var _key = Console.ReadKey(true);
+            var key = Console.ReadKey(true);
 
-            if (_key.Key == ConsoleKey.Home)
+            if (key.Key == ConsoleKey.Home)
                 Console.Clear();
             
-            if (_key.Key == ConsoleKey.Escape)
+            if (key.Key == ConsoleKey.Escape)
                 _continue = false;
             
-            if (_key.Key == ConsoleKey.F1)
+            if (key.Key == ConsoleKey.F1)
             {
-                displayHelp(invocationContext);
+                DisplayHelp();
             }
 
-            if (_key.Key == ConsoleKey.F2)
+            if (key.Key == ConsoleKey.F2)
             {
-                _paused = !_paused;
-                if (_paused)
+                paused = !paused;
+                if (paused)
                 {
                     Console.Write("Disconnected ... ");
                     _serialPort.Close();
@@ -171,160 +223,150 @@ namespace TerminalConsole
                     Console.Write("Reconnecting ... ");
             }
 
-            return _paused;
+            return paused;
         }
 
-        private static void displayHelp(InvocationContext invocationContext)
+        private static void DisplayHelp()
         {
             Console.WriteLine("\r\nTerminal Keys");
             Console.WriteLine("-------------");
 
             var consoleRenderer = new ConsoleRenderer(
-                invocationContext.Console,
-                invocationContext.BindingContext.OutputMode(),
+                _invocationContext.Console,
+                _invocationContext.BindingContext.OutputMode(),
                 true);
 
-            var _helpList = new List<dynamic>();
-            _helpList.Add(new { Key = "F1", Function = "Display SimpleTerm key help" });
-            _helpList.Add(new { Key = "F2", Function = "Disconnect / Reconnect serial connection" });
-            _helpList.Add(new { Key = "Home", Function = "Clear terminal screen" });
-            _helpList.Add(new { Key = "ESC", Function = "Exit terminal program" });
+            var helpList = new List<dynamic>();
+            helpList.Add(new { Key = "F1", Function = "Display SimpleTerm key help" });
+            helpList.Add(new { Key = "F2", Function = "Disconnect / Reconnect serial connection" });
+            helpList.Add(new { Key = "Home", Function = "Clear terminal screen" });
+            helpList.Add(new { Key = "ESC", Function = "Exit terminal program" });
 
-            var _tableView = new TableView<dynamic>
+            var tableView = new TableView<dynamic>
             {
-                Items = _helpList.ToList()
+                Items = helpList.ToList()
             };
 
-            _tableView.AddColumn(f => f.Key, "Key");
+            tableView.AddColumn(f => f.Key, "Key");
+            tableView.AddColumn(f => f.Function, "Function");
 
-            _tableView.AddColumn(f => f.Function, "Function");
+            Region region = new Region(0, 0, new Size(Console.WindowWidth, Console.BufferHeight));
+            tableView.Render(consoleRenderer, region);
 
-            var screen = new ScreenView(consoleRenderer, invocationContext.Console) { Child = _tableView };
-            screen.Render();
-        
+            //var screen = new ScreenView(consoleRenderer, invocationContext.Console) { Child = tableView };
+            //screen.Render();
+
             Console.WriteLine();
             Console.WriteLine();
         }
 
         private static Handshake SetHandshake(string handshake)
         {
-            switch (handshake.ToLower())
+            return (handshake.ToLower()) switch
             {
-                case "none":
-                    return Handshake.None;
-                case "xonxoff":
-                    return Handshake.XOnXOff;
-                case "rts":
-                    return Handshake.RequestToSend;
-                case "rtsxonxoff":
-                    return Handshake.RequestToSendXOnXOff;
-                default:
-                    return Handshake.None;
-            }
+                "none" => Handshake.None,
+                "xonxoff" => Handshake.XOnXOff,
+                "rts" => Handshake.RequestToSend,
+                "rtsxonxoff" => Handshake.RequestToSendXOnXOff,
+                _ => Handshake.None,
+            };
         }
+        
         private static StopBits SetStopBits(string stopBits)
         {
-            switch (stopBits.ToLower())
+            return (stopBits.ToLower()) switch
             {
-                case "one":
-                    return StopBits.One;
-                case "onepointfive":
-                    return StopBits.OnePointFive;
-                case "two":
-                    return StopBits.Two;
-                default:
-                    return StopBits.One;
-            }
+                "one" => StopBits.One,
+                "onepointfive" => StopBits.OnePointFive,
+                "two" => StopBits.Two,
+                _ => StopBits.One,
+            };
         }
+        
         private static Parity SetParity(string parity)
         {
-            switch (parity.ToLower())
+            return (parity.ToLower()) switch
             {
-                case "none":
-                    return Parity.None;
-                case "even":
-                    return Parity.Even;
-                case "mark":
-                    return Parity.Mark;
-                case "odd":
-                    return Parity.Odd;
-                case "space":
-                    return Parity.Space;
-                default:
-                    return Parity.None;
-            }
+                "none" => Parity.None,
+                "even" => Parity.Even,
+                "mark" => Parity.Mark,
+                "odd" => Parity.Odd,
+                "space" => Parity.Space,
+                _ => Parity.None,
+            };
         }
-        private static string SetPortName(InvocationContext invocationContext)
+        
+        private static string SetPortName()
         {
-            int _portIndex = -1;
-            bool _waiting = false;
-            string[] _ports;
+            int portIndex = -1;
+            bool waiting = false;
+            string[] ports;
 
             do
             {
-                _ports = SerialPort.GetPortNames();
+                ports = SerialPort.GetPortNames();
 
-                if (_ports.Length == 0)
+                if (ports.Length == 0)
                 {
-                    if (!_waiting) Console.WriteLine("Waiting for COM device.");
-                    _waiting = true;
+                    if (!waiting) Console.WriteLine("Waiting for COM device.");
+                    waiting = true;
                 }
-                else if (_ports.Length == 1)
+                else if (ports.Length == 1)
                 {
-                    _portIndex = 0;
-                    Console.WriteLine("Port defaulted to {0}", _ports[_portIndex]);
+                    portIndex = 0;
+                    Console.WriteLine("Port defaulted to {0}", ports[portIndex]);
                 }
                 else
                 {
                     Console.WriteLine("Select a port:");
 
-                    ListPorts(invocationContext);
+                    ListPorts();
                     Console.WriteLine();
                     Console.Write("port number: ");
 
-                    var _key = Console.ReadKey(false);
+                    var key = Console.ReadKey(false);
                     Console.WriteLine();
 
                     try
                     {
-                        _portIndex = int.Parse(_key.KeyChar.ToString()) - 1;
-                        Console.WriteLine("Port set to {0}", _ports[_portIndex]);
+                        portIndex = int.Parse(key.KeyChar.ToString()) - 1;
+                        Console.WriteLine("Port set to {0}", ports[portIndex]);
                     }
                     catch (Exception)
                     {
                         Console.WriteLine("Error setting port");
-                        _portIndex = -1;
+                        portIndex = -1;
                     }
                 }
-            } while (_portIndex == -1);
+            } while (portIndex == -1);
 
-            return _ports[_portIndex];
+            return ports[portIndex];
         }
 
-        private static string SerialPortDetails(SerialPort serialPort)
+        private static string SerialPortDetails()
         {
             return String.Format("'{0}' (B:{1} | P:{2} | DB: {3} | SB:{4} | HS: {5}) ",
-                serialPort.PortName,
-                serialPort.BaudRate,
-                serialPort.Parity.ToString(),
-                serialPort.DataBits,
-                serialPort.StopBits.ToString(),
-                serialPort.Handshake.ToString());
+                _serialPort.PortName,
+                _serialPort.BaudRate,
+                _serialPort.Parity.ToString(),
+                _serialPort.DataBits,
+                _serialPort.StopBits.ToString(),
+                _serialPort.Handshake.ToString());
         }
 
-        private static void ListPorts(InvocationContext invocationContext)
+        private static void ListPorts()
         {
-            List<dynamic> _serialList = new List<dynamic>();
+            List<dynamic> serialList = new List<dynamic>();
 
-            string[] _portNames = SerialPort.GetPortNames();
-            if (_portNames.Length == 0)
+            string[] portNames = SerialPort.GetPortNames();
+            if (portNames.Length == 0)
             {
                 Console.WriteLine("No serial ports detected.");
                 return;
             }
 
             int count = 0;
-            foreach (var portName in _portNames)
+            foreach (var portName in portNames)
             {
                 _serialPort = new SerialPort();
                 _serialPort.PortName = portName;
@@ -342,41 +384,43 @@ namespace TerminalConsole
                 }
 
                 var serialObject = new { Count = ++count, Name = portName, Status = !serialStatus ? "(free)" : "(busy)" };
-                _serialList.Add(serialObject);
+                serialList.Add(serialObject);
             }
 
             var consoleRenderer = new ConsoleRenderer(
-                invocationContext.Console,
-                invocationContext.BindingContext.OutputMode(),
+                _invocationContext.Console,
+                _invocationContext.BindingContext.OutputMode(),
                 true);
 
-            var _tableView = new TableView<dynamic>
+            var tableView = new TableView<dynamic>
             {
-                Items = _serialList.ToList()
+                Items = serialList.ToList()
             };
 
-            _tableView.AddColumn(f => f.Count, "#");
+            tableView.AddColumn(f => f.Count, "#");
+            tableView.AddColumn(f => f.Name, "Name");
+            tableView.AddColumn(f => f.Status, "Status");
 
-            _tableView.AddColumn(f => f.Name, "Name");
+            Region region = new Region(0,0,new Size(Console.WindowWidth,Console.BufferHeight));
+            tableView.Render(consoleRenderer, region);
 
-            _tableView.AddColumn(f => f.Status, "Status");
-
-            var screen = new ScreenView(consoleRenderer, invocationContext.Console) { Child = _tableView };
-            screen.Render();
+            //var screen = new ScreenView(consoleRenderer, invocationContext.Console) { Child = tableView };
+            //screen.Render();
 
             return;
         }
 
         private static void ErrorReceivedHandler(object sender, SerialErrorReceivedEventArgs e)
         {
-            SerialPort _port = (SerialPort)sender;
-            Console.WriteLine("{0} Error: {1}", _port.PortName, e.EventType.ToString());
+            SerialPort port = (SerialPort)sender;
+            Console.WriteLine("{0} Error: {1}", port.PortName, e.EventType.ToString());
         }
+
         private static void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
         {
-            SerialPort _port = (SerialPort)sender;
-            string _data = _port.ReadExisting();
-            Console.Write(_data);
+            SerialPort port = (SerialPort)sender;
+            string data = port.ReadExisting();
+            Console.Write(data);
         }
     }
-    }
+}
