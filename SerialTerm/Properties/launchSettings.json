@@ -2,7 +2,7 @@
   "profiles": {
     "SerialTerm": {
       "commandName": "Project",
-      "commandLineArgs": "--test 7"
+      "commandLineArgs": "list"
     }
   }
 }

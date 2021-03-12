@@ -4,6 +4,7 @@ using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Linq;
 using System.IO.Ports;
+using System.Management;
 
 namespace TerminalConsole
 {
@@ -20,8 +21,9 @@ namespace TerminalConsole
                 true);
 
             var helpList = new List<dynamic>();
-            helpList.Add(new { Key = "F1", Function = "Display SimpleTerm key help" });
+            helpList.Add(new { Key = "F1", Function = "Display SerialTerm key help" });
             helpList.Add(new { Key = "F2", Function = "Disconnect / Reconnect serial connection" });
+            helpList.Add(new { Key = "F3", Function = "Display serial port settings" });
             helpList.Add(new { Key = "Home", Function = "Clear terminal screen" });
             helpList.Add(new { Key = "ESC", Function = "Exit terminal program" });
 
@@ -36,29 +38,32 @@ namespace TerminalConsole
             Region region = new Region(0, 0, new Size(Console.WindowWidth, Console.BufferHeight));
             tableView.Render(consoleRenderer, region);
 
-            //var screen = new ScreenView(consoleRenderer, invocationContext.Console) { Child = tableView };
-            //screen.Render();
-
             Console.WriteLine();
             Console.WriteLine();
         }
 
         private static void DisplayPorts()
         {
-            List<dynamic> serialList = new List<dynamic>();
+            var consoleRenderer = new ConsoleRenderer(
+                _invocationContext.Console,
+                _invocationContext.BindingContext.OutputMode(),
+                true);
 
-            string[] portNames = SerialPort.GetPortNames();
-            if (portNames.Length == 0)
+            string[] portnames = SerialPort.GetPortNames();
+
+            if (portnames.Length == 0)
             {
                 Console.WriteLine("No serial ports detected.");
                 return;
             }
 
+            List<dynamic> serialList = new List<dynamic>();
+
             int count = 0;
-            foreach (var portName in portNames)
+            foreach (var port in portnames)
             {
                 _serialPort = new SerialPort();
-                _serialPort.PortName = portName;
+                _serialPort.PortName = portnames[count];
 
                 bool serialStatus = false;
 
@@ -72,14 +77,11 @@ namespace TerminalConsole
                     serialStatus = true;
                 }
 
-                var serialObject = new { Count = ++count, Name = portName, Status = !serialStatus ? "(free)" : "(busy)" };
+                var serialObject = new { Count = count + 1, Port = portnames[count], Status = !serialStatus ? "(free)" : "(busy)" };
                 serialList.Add(serialObject);
-            }
 
-            var consoleRenderer = new ConsoleRenderer(
-                _invocationContext.Console,
-                _invocationContext.BindingContext.OutputMode(),
-                true);
+                count++;
+            }
 
             var tableView = new TableView<dynamic>
             {
@@ -87,16 +89,11 @@ namespace TerminalConsole
             };
 
             tableView.AddColumn(f => f.Count, "#");
-            tableView.AddColumn(f => f.Name, "Name");
+            tableView.AddColumn(f => f.Port, "Port");
             tableView.AddColumn(f => f.Status, "Status");
 
             Region region = new Region(0, 0, new Size(Console.WindowWidth, Console.BufferHeight));
             tableView.Render(consoleRenderer, region);
-
-            //var screen = new ScreenView(consoleRenderer, invocationContext.Console) { Child = tableView };
-            //screen.Render();
-
-            return;
         }
     }
 }

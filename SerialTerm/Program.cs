@@ -17,7 +17,7 @@ namespace TerminalConsole
             // create a root command with some options
             var rootCommand = GetRootCommand(
                 "rootCommand",
-                "SimpleTerm - Simple serial port terminal program. (c)2021 AKsevenFour - https://github.com/AdamKeher/SerialTerm",
+                "SerialTerm - Simple serial port terminal program. (c)2021 AKsevenFour - https://github.com/AdamKeher/SerialTerm",
                 RootCommmandHandler);
 
             // create list ports command

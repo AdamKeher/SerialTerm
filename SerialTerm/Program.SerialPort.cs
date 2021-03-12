@@ -8,7 +8,7 @@ namespace TerminalConsole
         private static SerialPort GetSerialPort(CommandLineOptions options)
         {
             // setup serial port
-            _serialPort = new SerialPort()
+            SerialPort serialPort = new SerialPort()
             {
                 PortName = options.port ?? GetPortName(),
                 BaudRate = options.baud,
@@ -41,7 +41,10 @@ namespace TerminalConsole
                 WriteTimeout = 500
             };
 
-            return _serialPort;
+            serialPort.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
+            serialPort.ErrorReceived += new SerialErrorReceivedEventHandler(ErrorReceivedHandler);
+
+            return serialPort;
         }
 
         private static string GetPortName()

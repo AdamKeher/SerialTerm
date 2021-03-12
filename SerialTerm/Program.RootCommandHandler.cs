@@ -11,10 +11,7 @@ namespace TerminalConsole
         {
             _invocationContext = context;
 
-
             _serialPort = GetSerialPort(options);
-            _serialPort.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
-            _serialPort.ErrorReceived += new SerialErrorReceivedEventHandler(ErrorReceivedHandler);
 
             // open serial port
             Console.WriteLine("Connecting to: {0}", SerialPortToString());

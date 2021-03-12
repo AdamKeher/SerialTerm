@@ -7,7 +7,7 @@
     <Authors>Adam Keher</Authors>
     <Company>AKsevenFour</Company>
     <Copyright>(c)2021 AKsevenFour</Copyright>
-    <PackageProjectUrl>https://github.com/AdamKeher/SimpleTerm</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/AdamKeher/SerialTerm</PackageProjectUrl>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <RepositoryUrl></RepositoryUrl>
   </PropertyGroup>
@@ -15,6 +15,7 @@
   <ItemGroup>
     <PackageReference Include="System.CommandLine.Rendering" Version="0.3.0-alpha.20574.7" />
     <PackageReference Include="System.IO.Ports" Version="6.0.0-preview.1.21102.12" />
+    <PackageReference Include="System.Management" Version="6.0.0-preview.1.21102.12" />
   </ItemGroup>
 
 </Project>
