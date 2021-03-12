@@ -4,6 +4,7 @@ using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Linq;
 using System.IO.Ports;
+using System.Threading;
 
 namespace TerminalConsole
 {
@@ -41,7 +42,17 @@ namespace TerminalConsole
                 Console.WriteLine($"Connected to: {SerialPortToString()}");
             }
 
-           return paused;
+
+            if (key.Key == ConsoleKey.F4)
+            {
+                Console.Write($"Toggling RTS to reset... ");
+                _serialPort.RtsEnable = true;
+                Thread.Sleep(100);
+                Console.WriteLine($"Done ...");
+                _serialPort.RtsEnable = false;
+            }
+
+            return paused;
         }
     }
 }
