@@ -36,7 +36,12 @@ namespace TerminalConsole
                     Console.Write("Reconnecting ... ");
             }
 
-            return paused;
+            if (key.Key == ConsoleKey.F3)
+            {
+                Console.WriteLine($"Connected to: {SerialPortToString()}");
+            }
+
+           return paused;
         }
     }
 }
