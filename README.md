@@ -6,7 +6,7 @@ Get windows terminal @ https://github.com/microsoft/terminal
 ## About
 SimpleTerm was created to provide a simple command line driven serial port listener with VT100 / ANSI support for use with my electronics projects.
 
-### Some Features
+### Features
 
 * Uses the native VT100 / ANSI support provided in Windows Terminal
 * Comprehensive list of command line options to control the serial port configuration
