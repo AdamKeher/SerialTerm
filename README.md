@@ -16,6 +16,7 @@ SimpleTerm was created to provide a simple command line driven serial port liste
   * Supports physical disconnection and reconnection of the serial port without exit 
   * Provides the ability to quickly close and open the serial port to allow access to the port from 3rd party flash tools
 * Light weight implementation
+* Simple single file delployment
 
 ## Syntax
 ```
