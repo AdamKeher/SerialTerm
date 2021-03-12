@@ -96,15 +96,13 @@ namespace TerminalConsole
 
         private static string SerialPortToString()
         {
-            return String.Format("'{0}' (B:{1} | P:{2} | DB: {3} | SB:{4} | HS: {5} | DTR {6} | RTS {7})",
+            return String.Format("'{0}' (B:{1} | P:{2} | DB: {3} | SB:{4} | HS: {5}) ",
                 _serialPort.PortName,
                 _serialPort.BaudRate,
                 _serialPort.Parity.ToString(),
                 _serialPort.DataBits,
                 _serialPort.StopBits.ToString(),
-                _serialPort.Handshake.ToString(),
-                _serialPort.DtrEnable,
-                _serialPort.RtsEnable);                
+                _serialPort.Handshake.ToString());
         }
 
         private static void ErrorReceivedHandler(object sender, SerialErrorReceivedEventArgs e)
