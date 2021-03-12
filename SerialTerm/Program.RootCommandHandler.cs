@@ -19,6 +19,8 @@ namespace TerminalConsole
             try
             {
                 _serialPort.Open();
+                if (options.resetEsp32)
+                    ResetEsp32(100);
             }
             catch (Exception)
             {

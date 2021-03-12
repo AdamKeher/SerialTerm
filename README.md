@@ -16,6 +16,7 @@ SimpleTerm was created to provide a simple command line driven serial port liste
   * Supports physical disconnection and reconnection of the serial port without exit 
   * Provides the ability to quickly close and open the serial port to allow access to the port from 3rd party flash tools
 * Light weight implementation
+* Soft reset Esp32 from SerialTerm during listening or on connection
 * Simple single file delployment
 
 ## Syntax
@@ -30,6 +31,7 @@ Options:
   -P, --port <port>                                 Set the serial port to listen on
   -b, --baud <baud>                                 Set serial port baud rate [default: 115200]
   -de, --disconnect-exit                            Exit terminal on disconnection [default: False]
+  -r, --reset-esp32                                 Reset ESP32 on connection [default: False]
   -db, --data-bits <5|6|7|8>                        Sets the standard length of data bits per byte [default: 8]
   -pa, --parity <Even|Mark|None|Odd|Space>          Sets the parity-checking protocol [default: None]
   -sb, --stop-bits <One|OnePointFive|Two>           Sets the standard number of stopbits per byte [default: One]

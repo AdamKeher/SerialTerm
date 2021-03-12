@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
@@ -41,7 +42,14 @@ namespace TerminalConsole
                 Console.WriteLine($"Connected to: {SerialPortToString()}");
             }
 
-           return paused;
+            if (key.Key == ConsoleKey.F4)
+            {
+                Console.Write($"ESP32 Soft Rest. Toggling RTS ... ");
+                ResetEsp32(100);
+                Console.WriteLine($"Done ...");
+            }
+
+            return paused;
         }
     }
 }

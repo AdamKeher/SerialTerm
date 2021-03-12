@@ -27,6 +27,11 @@ namespace TerminalConsole
                     getDefaultValue: () => false,
                     "Exit terminal on disconnection"));
 
+            rootCommand.AddOption(new Option<bool>(
+                    new string[] { "--reset-esp32", "-r" },
+                    getDefaultValue: () => false,
+                    "Reset ESP32 on connection"));
+
             var dbOption = new Option<int>(
                 new string[] { "--data-bits", "-db" },
                 getDefaultValue: () => 8,

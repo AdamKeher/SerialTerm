@@ -9,5 +9,6 @@
         public string stopBits { get; set; }
         public string handshake { get; set; }
         public bool disconnectExit { get; set; }
+        public bool resetEsp32 { get; set; }
     }
 }
