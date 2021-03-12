@@ -1,8 +1,7 @@
 {
   "profiles": {
     "SerialTerm": {
-      "commandName": "Project",
-      "commandLineArgs": "list"
+      "commandName": "Project"
     }
   }
 }
