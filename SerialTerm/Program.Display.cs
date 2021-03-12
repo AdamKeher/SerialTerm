@@ -4,7 +4,6 @@ using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Linq;
 using System.IO.Ports;
-using System.Management;
 
 namespace TerminalConsole
 {
