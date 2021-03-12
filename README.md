@@ -1,7 +1,7 @@
 # SerialTerm
 A simple serial listener program for Windows Terminal command line replacement
 
-Get a precompiled single file version 0.1.1 @ https://github.com/AdamKeher/SerialTerm/releases
+Get a precompiled single file version 0.1.2 @ https://github.com/AdamKeher/SerialTerm/releases
 
 Get windows terminal @ https://github.com/microsoft/terminal
 
