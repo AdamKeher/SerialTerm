@@ -42,6 +42,8 @@ namespace TerminalConsole
                 WriteTimeout = 500
             };
 
+            serialPort.DtrEnable = !options.dtr;
+            serialPort.RtsEnable = !options.rts;
             serialPort.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
             serialPort.ErrorReceived += new SerialErrorReceivedEventHandler(ErrorReceivedHandler);
 

@@ -10,5 +10,7 @@
         public string handshake { get; set; }
         public bool disconnectExit { get; set; }
         public bool resetEsp32 { get; set; }
+        public bool dtr { get; set; }
+        public bool rts { get; set; }
     }
 }

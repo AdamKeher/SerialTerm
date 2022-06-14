@@ -32,6 +32,16 @@ namespace TerminalConsole
                     getDefaultValue: () => false,
                     "Reset ESP32 on connection"));
 
+            rootCommand.AddOption(new Option<bool>(
+                    new string[] { "--disable-dtr", "-dtr" },
+                    getDefaultValue: () => false,
+                    "Disable DTR for serial connection"));
+
+            rootCommand.AddOption(new Option<bool>(
+                    new string[] { "--disable-rts", "-rts" },
+                    getDefaultValue: () => false,
+                    "Disable RTS for serial connection"));
+
             var dbOption = new Option<int>(
                 new string[] { "--data-bits", "-db" },
                 getDefaultValue: () => 8,

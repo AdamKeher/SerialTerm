@@ -49,8 +49,10 @@ namespace TerminalConsole
                 Console.WriteLine($"Done ...");
             }
 
-            if (_serialPort.IsOpen) { _serialPort.Write(key.KeyChar.ToString()); }
-            
+            if (_serialPort.IsOpen) {
+                _serialPort.Write(key.KeyChar.ToString());
+            }
+
 
             return paused;
         }
