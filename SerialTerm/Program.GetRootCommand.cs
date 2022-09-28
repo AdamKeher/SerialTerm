@@ -11,49 +11,55 @@ namespace TerminalConsole
         {
             var rootCommand = new RootCommand(name);
             rootCommand.Description = description;
-            rootCommand.Handler = CommandHandler.Create(action);
 
-            rootCommand.AddOption(new Option<string>(
+            var portOption = new Option<string>(
                 new string[] { "--port", "-P" },
-                "Set the serial port to listen on"));
+                "Set the serial port to listen on");
+            rootCommand.AddOption(portOption);
 
-            rootCommand.AddOption(new Option<int>(
+            var baudOption = new Option<int>(
                     new string[] { "--baud", "-b" },
                     getDefaultValue: () => 115200,
-                    "Set serial port baud rate"));
+                    "Set serial port baud rate");
+            rootCommand.AddOption(baudOption);
 
-            rootCommand.AddOption(new Option<bool>(
+            var disconnectExitOpen = new Option<bool>(
                     new string[] { "--disconnect-exit", "-de" },
                     getDefaultValue: () => false,
-                    "Exit terminal on disconnection"));
+                    "Exit terminal on disconnection");
+            rootCommand.AddOption(disconnectExitOpen);
 
-            rootCommand.AddOption(new Option<bool>(
+            var resetEsp32Option = new Option<bool>(
                     new string[] { "--reset-esp32", "-r" },
                     getDefaultValue: () => false,
-                    "Reset ESP32 on connection"));
+                    "Reset ESP32 on connection");
+            rootCommand.AddOption(resetEsp32Option);
 
-            rootCommand.AddOption(new Option<bool>(
+            var disableDTROption = new Option<bool>(
                     new string[] { "--disable-dtr", "-dtr" },
                     getDefaultValue: () => false,
-                    "Disable DTR for serial connection"));
+                    "Disable DTR for serial connection");
+            rootCommand.AddOption(disableDTROption);
 
-            rootCommand.AddOption(new Option<bool>(
+            var disableRTSOption = new Option<bool>(
                     new string[] { "--disable-rts", "-rts" },
                     getDefaultValue: () => false,
-                    "Disable RTS for serial connection"));
+                    "Disable RTS for serial connection");
+            rootCommand.AddOption(disableRTSOption);
 
             var dbOption = new Option<int>(
                 new string[] { "--data-bits", "-db" },
                 getDefaultValue: () => 8,
                 "Sets the standard length of data bits per byte");
-            dbOption.AddSuggestions("5", "6", "7", "8");
+            dbOption.AddCompletions("5", "6", "7", "8");
             dbOption.AddValidator(optionResult => {
-                var suggestions = optionResult.Option.GetSuggestions().ToList();
+                var suggestions = optionResult.Option.AddCompletions().Aliases;
                 if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
                 {
-                    return $"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}";
+                    Console.WriteLine($"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}");
+                     return;
                 }
-                return null;
+                return ;
             });
             rootCommand.AddOption(dbOption);
 
@@ -61,15 +67,16 @@ namespace TerminalConsole
                 new string[] { "--parity", "-pa" },
                 getDefaultValue: () => "None",
                 "Sets the parity-checking protocol");
-            parityOption.AddSuggestions("None", "Mark", "Even", "Odd", "Space");
+            parityOption.AddCompletions("None", "Mark", "Even", "Odd", "Space");
             parityOption.AddValidator(optionResult =>
             {
-                var suggestions = optionResult.Option.GetSuggestions().ToList();
+                var suggestions = optionResult.Option.AddCompletions().Aliases;
                 if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
                 {
-                    return $"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}";
+                    Console.WriteLine( $"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}");
+                    return ;
                 }
-                return null;
+                return;
             });
             rootCommand.AddOption(parityOption);
 
@@ -77,15 +84,16 @@ namespace TerminalConsole
                 new string[] { "--stop-bits", "-sb" },
                 getDefaultValue: () => "One",
                 "Sets the standard number of stopbits per byte");
-            sbOption.AddSuggestions("One", "OnePointFive", "Two");
+            sbOption.AddCompletions("One", "OnePointFive", "Two");
             sbOption.AddValidator(optionResult =>
             {
-                var suggestions = optionResult.Option.GetSuggestions().ToList();
+                var suggestions = optionResult.Option.AddCompletions().Aliases;
                 if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
                 {
-                    return $"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}";
+                     Console.WriteLine($"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}");
+                     return;
                 }
-                return null;
+                return ;
             });
             rootCommand.AddOption(sbOption);
 
@@ -93,18 +101,38 @@ namespace TerminalConsole
                 new string[] { "--handshake", "-hs" },
                 getDefaultValue: () => "None",
                 "Specifies the control protocol used in establishing a serial port communication");
-            hsOption.AddSuggestions("None", "RTS", "XonXoff", "RTSXonXoff");
+            hsOption.AddCompletions("None", "RTS", "XonXoff", "RTSXonXoff");
             hsOption.AddValidator(optionResult =>
             {
-                var suggestions = optionResult.Option.GetSuggestions().ToList();
+                var suggestions = optionResult.Option.AddCompletions().Aliases;
                 if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
                 {
-                    return $"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}";
+                      Console.WriteLine($"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}");
+                     return;
                 }
-                return null;
+                return;
             });
             rootCommand.AddOption(hsOption);
 
+
+            rootCommand.SetHandler((context)=>
+                {
+                    var opts = new CommandLineOptions(){
+                        baud = context.ParseResult.GetValueForOption(baudOption),
+                        dataBits = context.ParseResult.GetValueForOption(dbOption),
+                        disconnectExit = context.ParseResult.GetValueForOption(disconnectExitOpen),
+                        dtr = context.ParseResult.GetValueForOption(disableDTROption),
+                        handshake = context.ParseResult.GetValueForOption(hsOption),
+                        parity = context.ParseResult.GetValueForOption(parityOption),
+                        port = context.ParseResult.GetValueForOption(portOption),
+                        resetEsp32 = context.ParseResult.GetValueForOption(resetEsp32Option),
+                        rts = context.ParseResult.GetValueForOption(disableRTSOption),
+                        stopBits = context.ParseResult.GetValueForOption(sbOption)
+                    };
+                    action.Invoke(context, opts);
+                }
+            );
+            
             return rootCommand;
         }
     }
