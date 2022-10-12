@@ -117,6 +117,25 @@ namespace TerminalConsole
             _serialPort.RtsEnable = false;
         }
 
+        private static void PicoProgrammingMode()
+        {
+            _serialPort.Close();
+            int oldbaud = _serialPort.BaudRate;
+            _serialPort.BaudRate = 1200;
+            try
+            {
+                _serialPort.Open();
+                Thread.Sleep(500);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: Unable to open / find port ... ");
+            }
+            _serialPort.Close();
+            _serialPort.BaudRate = oldbaud;
+
+        }
+
         private static void ErrorReceivedHandler(object sender, SerialErrorReceivedEventArgs e)
         {
             SerialPort port = (SerialPort)sender;

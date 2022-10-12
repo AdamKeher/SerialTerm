@@ -49,6 +49,14 @@ namespace TerminalConsole
                 Console.WriteLine($"Done ...");
             }
 
+            if (key.Key == ConsoleKey.F5)
+            {
+                Console.WriteLine($"Pi PICO Programming mode. Connecting 1200 baud ... ");
+                PicoProgrammingMode();
+                paused = true;
+                Console.Write("Disconnected ... ");
+            }
+
             if (_serialPort.IsOpen) {
                 _serialPort.Write(key.KeyChar.ToString());
             }

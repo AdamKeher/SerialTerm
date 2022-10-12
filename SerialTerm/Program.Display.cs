@@ -24,6 +24,7 @@ namespace TerminalConsole
             helpList.Add(new { Key = "F2", Function = "Disconnect / Reconnect serial connection" });
             helpList.Add(new { Key = "F3", Function = "Display serial port settings" });
             helpList.Add(new { Key = "F4", Function = "Soft reset ESP32 by toggling RTS enabled" });
+            helpList.Add(new { Key = "F5", Function = "Reset PICO to programming mode by toggling 1200 baud connection" });
             helpList.Add(new { Key = "Home", Function = "Clear terminal screen" });
             helpList.Add(new { Key = "ESC", Function = "Exit terminal program" });
 
