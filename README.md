@@ -19,6 +19,7 @@ SimpleTerm was created to provide a simple command line driven serial port liste
 * Soft reset Esp32 from SerialTerm during listening or on connection
 * Soft reset Raspberry PI Pico
 * Simple single file delployment
+* Added support for NET6.0
 
 ## Syntax
 ```
