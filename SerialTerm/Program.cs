@@ -21,14 +21,13 @@ namespace TerminalConsole
                 RootCommmandHandler);
 
             // create list ports command
-            rootCommand.AddCommand(
-                new Command("list", "List all serial ports")
-                {
-                    Handler = CommandHandler.Create((Action<InvocationContext>)(ListCommmandHandler))
-                });
-
+            var listCommand = new Command("list", "List all serial ports");
+            listCommand.SetHandler(ListCommmandHandler);
+            rootCommand.Add(listCommand);
+            
             // Parse the incoming args and invoke the handler
-            return rootCommand.InvokeAsync(args).Result;
+            var result = rootCommand.InvokeAsync(args).Result;
+            return result;
         }
     }
 }
