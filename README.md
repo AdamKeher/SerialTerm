@@ -40,6 +40,7 @@ Ctrl+A l          Start / stop logging the session to a file
 Ctrl+A v          Toggle hex view of incoming bytes
 Ctrl+A f          Freeze / resume the screen, output keeps being captured
 Ctrl+A b          Send a break to the device
+Ctrl+A o          Toggle local echo of what you type
 Ctrl+A c          Clear terminal screen
 Ctrl+A q          Exit terminal program
 Ctrl+A Ctrl+A     Send a literal Ctrl+A to the connected device
@@ -65,6 +66,15 @@ happens.
 ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
+
+## Local echo
+
+Half duplex devices and raw AT command modems echo nothing back, so you type
+blind. `--local-echo`, or `Ctrl+A o` during a session, shows what you send.
+
+Echoed bytes go through the same renderer as device output, so they obey
+whichever view is current - in hex view you see what you sent in hex as well,
+interleaved with what came back.
 
 ## Break
 
@@ -149,6 +159,7 @@ Options:
   -nl, --newline <cr|crlf|lf>                     Bytes sent by the Enter key [default: cr]
   -l, --log <log>                                 Append everything the device sends to a file. Ctrl+A l starts and stops it during a session
   -lr, --log-raw                                  Keep ANSI escape sequences in the log instead of stripping them [default: False]
+  -le, --local-echo                               Show what you type. For devices that do not echo it back themselves [default: False]
   -ts, --timestamp <abs|off|rel>                  Prefix each line from the device with a time, abs is the clock and rel is seconds since connecting [default: off]
   -db, --data-bits <5|6|7|8>                      Sets the standard length of data bits per byte [default: 8]
   -pa, --parity <Even|Mark|None|Odd|Space>        Sets the parity-checking protocol [default: None]

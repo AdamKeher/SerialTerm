@@ -41,6 +41,7 @@ namespace TerminalConsole
             _legacyKeys = options.legacyKeys;
             _hintEnabled = !options.noHint;
             SetLineDiscipline(options.backspace, options.newline);
+            _localEcho = options.localEcho;
             ConfigureTimestamps(options.timestamp);
             ConfigureLog(options);
 

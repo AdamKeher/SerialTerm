@@ -85,6 +85,12 @@ namespace TerminalConsole
                     "Keep ANSI escape sequences in the log instead of stripping them");
             rootCommand.AddOption(logRawOption);
 
+            var localEchoOption = new Option<bool>(
+                    new string[] { "--local-echo", "-le" },
+                    getDefaultValue: () => false,
+                    "Show what you type. For devices that do not echo it back themselves");
+            rootCommand.AddOption(localEchoOption);
+
             var timestampOption = NamedOption(
                 new string[] { "--timestamp", "-ts" },
                 "Prefix each line from the device with a time, abs is the clock and rel is seconds since connecting",
@@ -156,6 +162,7 @@ namespace TerminalConsole
                         handshake = ValueOf(HandshakeValues, context.ParseResult.GetValueForOption(hsOption), Handshake.None),
                         legacyKeys = context.ParseResult.GetValueForOption(legacyKeysOption),
                         log = context.ParseResult.GetValueForOption(logOption),
+                        localEcho = context.ParseResult.GetValueForOption(localEchoOption),
                         logRaw = context.ParseResult.GetValueForOption(logRawOption),
                         newline = context.ParseResult.GetValueForOption(newlineOption),
                         noHint = context.ParseResult.GetValueForOption(noHintOption),

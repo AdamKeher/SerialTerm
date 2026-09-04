@@ -24,6 +24,7 @@ namespace TerminalConsole
                 new[] { $"{prefix} v", "Toggle hex view of incoming bytes" },
                 new[] { $"{prefix} f", "Freeze / resume the screen, output keeps being captured" },
                 new[] { $"{prefix} b", "Send a break to the device" },
+                new[] { $"{prefix} o", "Toggle local echo of what you type" },
                 new[] { $"{prefix} c", "Clear terminal screen" },
                 new[] { $"{prefix} q", "Exit terminal program" },
                 new[] { $"{prefix} {prefix}", $"Send a literal {prefix} to the connected device" },
