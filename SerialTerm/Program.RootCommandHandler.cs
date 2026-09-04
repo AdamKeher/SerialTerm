@@ -14,8 +14,6 @@ namespace TerminalConsole
 
         static void RootCommmandHandler(InvocationContext context, CommandLineOptions options)
         {
-            _invocationContext = context;
-
             // The SerialPort property setters range check and throw. The options
             // are validated during parsing, so reaching this catch means a
             // combination we did not anticipate - report it in one line rather

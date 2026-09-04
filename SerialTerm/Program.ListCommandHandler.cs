@@ -9,8 +9,6 @@ namespace TerminalConsole
     {
         static void ListCommmandHandler(InvocationContext context)
         {
-            _invocationContext = context;
-
             Console.WriteLine("Serial Ports");
             Console.WriteLine("------------");
             DisplayPorts();

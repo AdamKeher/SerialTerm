@@ -11,7 +11,6 @@ namespace TerminalConsole
     {
         static SerialPort _serialPort;
         static bool _continue;
-        private static InvocationContext _invocationContext;
         static readonly object _consoleLock = new object();
         static Stream _standardOutput;
 
