@@ -3,14 +3,18 @@ name: release
 # Cutting a release was manual. Tag a version and the binaries build
 # themselves:
 #
-#   git tag v0.3.0 && git push origin v0.3.0
+#   git tag 0.3.0 && git push origin 0.3.0
+#
+# This project's earlier tags are bare versions - 0.1.4, 0.2.0 - so that is
+# the pattern to match. A v prefix is accepted too, since it is the more
+# common convention and easy to reach for by mistake.
 on:
   push:
-    tags: ['v*']
+    tags: ['[0-9]*', 'v[0-9]*']
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release, eg. v0.3.0'
+        description: 'Tag to release, eg. 0.3.0'
         required: true
 
 jobs:
@@ -77,15 +81,62 @@ jobs:
       contents: write
 
     steps:
+      # the notes are built from the commit log, so the full history and the
+      # earlier tags have to be present
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/download-artifact@v4
         with:
           pattern: package-*
           merge-multiple: true
+
+      # generate_release_notes on its own lists merged pull requests, and this
+      # project merges branches straight to master without them - which is why
+      # the first attempt produced a release with an empty body. Build the notes
+      # from the commits between this tag and the last one instead.
+      - name: Compose the notes
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          previous=$(git tag --sort=-version:refname | grep -v "^${TAG}$" | head -1)
+
+          {
+            if [ -n "$previous" ]; then
+              echo "## Changes since $previous"
+              echo
+              git log --no-merges --reverse --pretty='- %s' "$previous..${TAG}"
+              echo
+              echo "**Full changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/$previous...${TAG}"
+            else
+              echo "## Changes"
+              echo
+              git log --no-merges --reverse --pretty='- %s' "${TAG}"
+            fi
+
+            echo
+            echo "## Downloads"
+            echo
+            echo "Self contained single file builds - no runtime to install."
+            echo
+            echo "| Platform | File |"
+            echo "| --- | --- |"
+            echo "| Windows x64 | \`SerialTerm-win-x64.zip\` |"
+            echo "| Windows arm64 | \`SerialTerm-win-arm64.zip\` |"
+            echo "| Linux x64 | \`SerialTerm-linux-x64.tar.gz\` |"
+            echo "| Linux arm64 | \`SerialTerm-linux-arm64.tar.gz\` |"
+            echo "| macOS Intel | \`SerialTerm-osx-x64.tar.gz\` |"
+            echo "| macOS Apple silicon | \`SerialTerm-osx-arm64.tar.gz\` |"
+          } > NOTES.md
+
+          echo "Composed notes:"
+          cat NOTES.md
 
       - name: Draft the release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           draft: true
-          generate_release_notes: true
+          body_path: NOTES.md
           files: SerialTerm-*
