@@ -38,6 +38,7 @@ Ctrl+A e          Soft reset ESP32 by toggling RTS enabled
 Ctrl+A p          Reset PICO to programming mode by toggling 1200 baud connection
 Ctrl+A l          Start / stop logging the session to a file
 Ctrl+A v          Toggle hex view of incoming bytes
+Ctrl+A f          Freeze / resume the screen, output keeps being captured
 Ctrl+A c          Clear terminal screen
 Ctrl+A q          Exit terminal program
 Ctrl+A Ctrl+A     Send a literal Ctrl+A to the connected device
@@ -63,6 +64,17 @@ happens.
 ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
+
+## Freeze
+
+`Ctrl+A f` stops the screen moving so a stack trace can be read before the
+device scrolls it away. The port stays open and the bytes keep being collected -
+this is not `Ctrl+A d`, which closes the connection and loses whatever arrives.
+Press it again to resume, and everything held is painted in order.
+
+The buffer is capped at 1 MB. Past that the oldest bytes go and the resume
+message says how many, since the reason to freeze is almost always to read
+something that just happened.
 
 ## Hex view
 

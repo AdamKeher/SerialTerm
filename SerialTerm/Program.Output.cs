@@ -19,6 +19,22 @@ namespace TerminalConsole
                 // is currently doing with it
                 LogBytes(buffer, count);
 
+                // frozen only stops the painting - the bytes are kept and
+                // replayed on resume, so nothing is lost
+                if (_frozen)
+                {
+                    HoldWhileFrozen(buffer, count);
+                    return;
+                }
+
+                RenderDeviceBytes(buffer, count);
+            }
+        }
+
+        private static void RenderDeviceBytes(byte[] buffer, int count)
+        {
+            lock (_consoleLock)
+            {
                 bool hint = _hintVisible;
                 if (hint) HideHint();
 
