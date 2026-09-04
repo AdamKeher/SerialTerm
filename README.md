@@ -79,3 +79,21 @@ Options:
 Commands:
   list  List all serial ports
  ```
+
+### list
+
+`list` names the device behind each port, read from the Windows device tree.
+No port is opened, so nothing attached is disturbed.
+
+```
+Serial Ports
+------------
+#  Port  Device
+1  COM3  Silicon Labs CP210x USB to UART Bridge  10C4:EA60
+2  COM4  USB Serial Device  16C0:0483
+```
+
+Pass `--probe` to also report whether each port is free. That works by opening
+each port in turn, which asserts DTR and RTS and so **resets any board wired
+for auto reset** - every ESP32 dev board, and Arduinos with the reset
+capacitor. It is off by default for that reason.

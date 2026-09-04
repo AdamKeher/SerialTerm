@@ -46,7 +46,9 @@ namespace TerminalConsole
             Console.WriteLine();
         }
 
-        private static void DisplayPorts()
+        // Probing asks each port whether it opens, which reboots anything wired
+        // for auto reset. It is opt in for that reason.
+        private static void DisplayPorts(bool probe = false)
         {
             string[] portnames = SerialPort.GetPortNames();
 
@@ -56,30 +58,48 @@ namespace TerminalConsole
                 return;
             }
 
+            Dictionary<string, string> descriptions = GetPortDescriptions();
+
+            var headers = new List<string> { "#", "Port", "Device" };
+            if (probe)
+                headers.Add("Status");
+
             var rows = new List<string[]>();
 
             for (int index = 0; index < portnames.Length; index++)
             {
-                bool free;
+                string port = portnames[index];
 
-                using (var port = new SerialPort(portnames[index]))
+                var row = new List<string>
                 {
-                    try
-                    {
-                        port.Open();
-                        port.Close();
-                        free = true;
-                    }
-                    catch (Exception)
-                    {
-                        free = false;
-                    }
-                }
+                    (index + 1).ToString(),
+                    port,
+                    descriptions.TryGetValue(port, out string description) ? description : "-"
+                };
 
-                rows.Add(new[] { (index + 1).ToString(), portnames[index], free ? "(free)" : "(busy)" });
+                if (probe)
+                    row.Add(IsPortFree(port) ? "(free)" : "(busy)");
+
+                rows.Add(row.ToArray());
             }
 
-            WriteTable(new[] { "#", "Port", "Status" }, rows);
+            WriteTable(headers, rows);
+        }
+
+        private static bool IsPortFree(string portName)
+        {
+            using var port = new SerialPort(portName);
+
+            try
+            {
+                port.Open();
+                port.Close();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }
