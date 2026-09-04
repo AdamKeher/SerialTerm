@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace TerminalConsole
@@ -22,10 +22,15 @@ namespace TerminalConsole
                     widths[column] = Math.Max(widths[column], (row[column] ?? string.Empty).Length);
             }
 
-            Console.WriteLine(Row(headers, widths));
+            // one lock for the whole table, so device output cannot land
+            // between two rows and shred the columns
+            SayBlock(() =>
+            {
+                SayLine(Row(headers, widths));
 
-            foreach (string[] row in rows)
-                Console.WriteLine(Row(row, widths));
+                foreach (string[] row in rows)
+                    SayLine(Row(row, widths));
+            });
         }
 
         private static string Row(IReadOnlyList<string> cells, int[] widths)

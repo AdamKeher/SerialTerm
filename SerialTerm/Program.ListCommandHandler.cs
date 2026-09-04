@@ -9,8 +9,8 @@ namespace TerminalConsole
     {
         static void ListCommmandHandler(bool probe)
         {
-            Console.WriteLine("Serial Ports");
-            Console.WriteLine("------------");
+            SayLine("Serial Ports");
+            SayLine("------------");
             DisplayPorts(probe);
         }
     }

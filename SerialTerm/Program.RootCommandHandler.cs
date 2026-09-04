@@ -26,7 +26,7 @@ namespace TerminalConsole
             }
             catch (ArgumentException e)
             {
-                Console.WriteLine($"Invalid serial port settings: {e.Message}");
+                SayLine($"Invalid serial port settings: {e.Message}");
                 return;
             }
 
@@ -38,8 +38,8 @@ namespace TerminalConsole
             _hintEnabled = !options.noHint;
 
             // open serial port
-            Console.WriteLine("Connecting to: {0}", SerialPortToString());
-            Console.WriteLine("Press {0} ? for the list of terminal keys", EscapeKeyName());
+            SayLine($"Connecting to: {SerialPortToString()}");
+            SayLine($"Press {EscapeKeyName()} ? for the list of terminal keys");
 
             // set when the user has already been told the port is not available,
             // so the retry loop does not repeat itself
@@ -53,12 +53,12 @@ namespace TerminalConsole
             }
             catch (UnauthorizedAccessException)
             {
-                Console.WriteLine(PortInUseMessage());
+                SayLine(PortInUseMessage());
                 reported = true;
             }
             catch (Exception)
             {
-                Console.WriteLine($"Failed to open {_serialPort.PortName}");
+                SayLine($"Failed to open {_serialPort.PortName}");
                 reported = true;
             }
 
@@ -97,12 +97,12 @@ namespace TerminalConsole
                     try
                     {
                         _serialPort.Open();
-                        if (reported) Console.WriteLine("Reconnected.");
+                        if (reported) SayLine("Reconnected.");
                         reported = false;
                     }
                     catch (System.IO.FileNotFoundException)
                     {
-                        if (!reported) Console.WriteLine("Disconnected.");
+                        if (!reported) SayLine("Disconnected.");
                         if (options.disconnectExit)
                             return;
                         reported = true;
@@ -112,7 +112,7 @@ namespace TerminalConsole
                         // the port is there but another program holds it open, so
                         // keep waiting rather than failing - it is released again
                         // when that program exits
-                        if (!reported) Console.WriteLine(PortInUseMessage());
+                        if (!reported) SayLine(PortInUseMessage());
                         reported = true;
                     }
                     catch (System.IO.IOException) { }

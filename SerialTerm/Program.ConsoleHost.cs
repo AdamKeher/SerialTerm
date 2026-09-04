@@ -60,11 +60,44 @@ namespace TerminalConsole
 
         private static void ClearScreen()
         {
-            try
+            lock (_consoleLock)
             {
-                Console.Clear();
+                try
+                {
+                    Console.Clear();
+                }
+                catch (IOException) { }
             }
-            catch (IOException) { }
+        }
+
+        // Device output is written to the raw stdout stream under _consoleLock.
+        // Everything SerialTerm says itself has to take the same lock, or the
+        // two tear into each other - a help table shredded mid row by incoming
+        // bytes, or the hint saving a half written line and painting it back.
+        // Monitor is reentrant, so Say/SayLine nest inside a SayBlock freely.
+        private static void Say(string text)
+        {
+            lock (_consoleLock)
+            {
+                Console.Write(text);
+            }
+        }
+
+        private static void SayLine(string text = "")
+        {
+            lock (_consoleLock)
+            {
+                Console.WriteLine(text);
+            }
+        }
+
+        // holds the lock across a run of writes that must not be interleaved
+        private static void SayBlock(Action body)
+        {
+            lock (_consoleLock)
+            {
+                body();
+            }
         }
     }
 }

@@ -50,7 +50,7 @@ namespace TerminalConsole
 
                 if (ports.Length == 0)
                 {
-                    if (!waiting) Console.WriteLine("Waiting for COM device.");
+                    if (!waiting) SayLine("Waiting for COM device.");
                     waiting = true;
 
                     // enumerating ports hits the registry, so pause between
@@ -63,15 +63,15 @@ namespace TerminalConsole
                 if (ports.Length == 1)
                 {
                     portIndex = 0;
-                    Console.WriteLine("Port defaulted to {0}", ports[portIndex]);
+                    SayLine($"Port defaulted to {ports[portIndex]}");
                 }
                 else
                 {
-                    Console.WriteLine("Select a port:");
+                    SayLine("Select a port:");
 
                     DisplayPorts();
-                    Console.WriteLine();
-                    Console.Write($"port number (1-{ports.Length}, q to quit): ");
+                    SayLine();
+                    Say($"port number (1-{ports.Length}, q to quit): ");
 
                     string entry = Console.ReadLine()?.Trim();
 
@@ -80,13 +80,13 @@ namespace TerminalConsole
                         return null;
 
                     if (!int.TryParse(entry, out int selection))
-                        Console.WriteLine($"'{entry}' is not a number.");
+                        SayLine($"'{entry}' is not a number.");
                     else if (selection < 1 || selection > ports.Length)
-                        Console.WriteLine($"{selection} is out of range, pick a number between 1 and {ports.Length}.");
+                        SayLine($"{selection} is out of range, pick a number between 1 and {ports.Length}.");
                     else
                     {
                         portIndex = selection - 1;
-                        Console.WriteLine("Port set to {0}", ports[portIndex]);
+                        SayLine($"Port set to {ports[portIndex]}");
                     }
                 }
             } while (portIndex == -1);
@@ -126,7 +126,7 @@ namespace TerminalConsole
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: Unable to open / find port ... ");
+                SayLine("Error: Unable to open / find port ... ");
             }
             _serialPort.Close();
             _serialPort.BaudRate = oldbaud;
@@ -136,7 +136,7 @@ namespace TerminalConsole
         private static void ErrorReceivedHandler(object sender, SerialErrorReceivedEventArgs e)
         {
             SerialPort port = (SerialPort)sender;
-            Console.WriteLine("{0} Error: {1}", port.PortName, e.EventType.ToString());
+            SayLine($"{port.PortName} Error: {e.EventType}");
         }
 
         // Device output is passed straight through as bytes. Decoding it as text

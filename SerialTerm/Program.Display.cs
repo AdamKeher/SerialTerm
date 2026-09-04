@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO.Ports;
 
@@ -8,8 +8,8 @@ namespace TerminalConsole
     {
         private static void DisplayHelp()
         {
-            Console.WriteLine("\r\nTerminal Keys");
-            Console.WriteLine("-------------");
+            SayLine("\r\nTerminal Keys");
+            SayLine("-------------");
 
             var prefix = EscapeKeyName();
 
@@ -36,14 +36,17 @@ namespace TerminalConsole
                 rows.Add(new[] { "ESC", "Exit terminal program" });
             }
 
-            WriteTable(new[] { "Key", "Function" }, rows);
+            SayBlock(() =>
+            {
+                WriteTable(new[] { "Key", "Function" }, rows);
 
-            Console.WriteLine();
-            Console.WriteLine(_legacyKeys
-                ? "Every other key is sent to the connected device. ESC and F1-F5 are held by SerialTerm."
-                : "Every other key, ESC and Ctrl+C included, is sent to the connected device.");
+                SayLine();
+                SayLine(_legacyKeys
+                    ? "Every other key is sent to the connected device. ESC and F1-F5 are held by SerialTerm."
+                    : "Every other key, ESC and Ctrl+C included, is sent to the connected device.");
 
-            Console.WriteLine();
+                SayLine();
+            });
         }
 
         // Probing asks each port whether it opens, which reboots anything wired
@@ -54,7 +57,7 @@ namespace TerminalConsole
 
             if (portnames.Length == 0)
             {
-                Console.WriteLine("No serial ports detected.");
+                SayLine("No serial ports detected.");
                 return;
             }
 
