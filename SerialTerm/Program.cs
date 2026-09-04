@@ -38,7 +38,7 @@ namespace TerminalConsole
             rootCommand.Add(profilesCommand);
             
             // Parse the incoming args and invoke the handler
-            return rootCommand.Invoke(ResolveProfiles(args));
+            return rootCommand.Invoke(ResolveProfiles(args, rootCommand));
         }
     }
 }

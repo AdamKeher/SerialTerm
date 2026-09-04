@@ -168,11 +168,36 @@ CP210x
 --status-line
 ```
 
-then run `SerialTerm @esp32`. `SerialTerm profiles` lists what is saved.
+then run `SerialTerm @esp32`. `SerialTerm profiles` lists what is saved. Blank
+lines and `#` comments are allowed, so a profile can say why it is the way it is.
+
+### Defaults
+
+A profile named `default.rsp` is applied to every run without being asked for.
+This is where a standing preference goes - if you always want the status line:
+
+```
+# always show the status line
+--status-line
+```
+
+`--no-defaults` ignores it for one run.
+
+### Overriding
+
+Settings layer, and the last one wins: `default.rsp`, then a named profile, then
+the command line. Each only overrides what it actually names.
+
+```
+SerialTerm @bench                 the profile's baud
+SerialTerm @bench --baud 9600     everything else from the profile, this baud
+SerialTerm --status-line false    switch off something the default turned on
+```
+
+`--macro` is exempt, since it is meant to be given more than once.
 
 `@` also takes a path, so a project can keep its settings in its own repository
-as `@./serial.rsp`. A local file of that name wins over a profile, so a
-project's own settings are never shadowed.
+as `@./serial.rsp`.
 
 ## Changing baud rate
 
@@ -377,6 +402,7 @@ Options:
   -rts, --disable-rts                             Disable RTS for serial connection [default: False]
   -ek, --escape-key <escape-key>                  Set the escape key used to reach SerialTerm commands, eg. ^A, ^], 0x1D [default: ^A]
   -lk, --legacy-keys                              Also bind the original F1-F5, Home and ESC keys, ESC will not reach the device [default: False]
+  -nd, --no-defaults                              Ignore the default profile for this run
   -nu, --no-utf8                                  Leave the console output code page alone, for a device that sends its own 8 bit encoding rather than UTF-8
   -nh, --no-hint                                  Do not show the command hint line while the escape key is pending [default: False]
   -sl, --status-line                              Reserve the bottom row for a status line. Costs the device one row of screen [default: False]

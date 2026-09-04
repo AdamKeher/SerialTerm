@@ -79,6 +79,12 @@ namespace TerminalConsole
                     "Do not show the command hint line while the escape key is pending");
             rootCommand.AddOption(noHintOption);
 
+            var noDefaultsOption = new Option<bool>(
+                    new string[] { "--no-defaults", "-nd" },
+                    getDefaultValue: () => false,
+                    "Ignore the default profile for this run");
+            rootCommand.AddOption(noDefaultsOption);
+
             var noUtf8Option = new Option<bool>(
                     new string[] { "--no-utf8", "-nu" },
                     getDefaultValue: () => false,
@@ -226,6 +232,7 @@ namespace TerminalConsole
                         sendWait = context.ParseResult.GetValueForOption(sendWaitOption),
                         newline = context.ParseResult.GetValueForOption(newlineOption),
                         noHint = context.ParseResult.GetValueForOption(noHintOption),
+                        noDefaults = context.ParseResult.GetValueForOption(noDefaultsOption),
                         noUtf8 = context.ParseResult.GetValueForOption(noUtf8Option),
                         parity = ValueOf(ParityValues, context.ParseResult.GetValueForOption(parityOption), Parity.None),
                         port = context.ParseResult.GetValueForOption(portOption),
