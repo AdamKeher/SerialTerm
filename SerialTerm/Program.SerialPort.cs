@@ -94,8 +94,20 @@ namespace TerminalConsole
             return ports[portIndex];
         }
 
+        // With RTS handshaking the hardware drives the line, and SerialPort
+        // refuses to let RtsEnable be read or written at all once the port is
+        // open - it throws InvalidOperationException rather than returning
+        // anything. Anything touching RTS has to ask first.
+        private static bool HandshakeOwnsRts()
+        {
+            return _serialPort.Handshake == Handshake.RequestToSend
+                || _serialPort.Handshake == Handshake.RequestToSendXOnXOff;
+        }
+
         private static string SerialPortToString()
         {
+            string rts = HandshakeOwnsRts() ? "handshake" : _serialPort.RtsEnable.ToString();
+
             return String.Format("'{0}' (B:{1} | P:{2} | DB: {3} | SB:{4} | HS: {5} | DTR {6} | RTS {7}) ",
                 _serialPort.PortName,
                 _serialPort.BaudRate,
@@ -104,14 +116,27 @@ namespace TerminalConsole
                 _serialPort.StopBits.ToString(),
                 _serialPort.Handshake.ToString(),
                 _serialPort.DtrEnable,
-                _serialPort.RtsEnable);
+                rts);
         }
 
-        private static void ResetEsp32(int duration)
+        private static bool ResetEsp32(int duration)
         {
+            if (HandshakeOwnsRts())
+            {
+                SayLine($"\r\nCannot toggle RTS while --handshake is set to {_serialPort.Handshake}.");
+                return false;
+            }
+
+            if (!_serialPort.IsOpen)
+            {
+                SayLine("\r\nNot connected.");
+                return false;
+            }
+
             _serialPort.RtsEnable = true;
             Thread.Sleep(duration);
             _serialPort.RtsEnable = false;
+            return true;
         }
 
         private static void PicoProgrammingMode()

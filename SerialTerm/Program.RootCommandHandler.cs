@@ -48,19 +48,22 @@ namespace TerminalConsole
             try
             {
                 _serialPort.Open();
-                if (options.resetEsp32)
-                    ResetEsp32(100);
             }
             catch (UnauthorizedAccessException)
             {
                 SayLine(PortInUseMessage());
                 reported = true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                SayLine($"Failed to open {_serialPort.PortName}");
+                SayLine($"Failed to open {_serialPort.PortName}: {e.Message}");
                 reported = true;
             }
+
+            // outside the open, so a reset that fails cannot be reported as the
+            // port having failed to open
+            if (_serialPort.IsOpen && options.resetEsp32)
+                ResetEsp32(100);
 
             // Ctrl+C belongs to the connected device rather than to SerialTerm, and
             // the console has to be asked to interpret the escape sequences a
