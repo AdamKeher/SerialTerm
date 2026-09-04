@@ -39,6 +39,10 @@ Ctrl+A p          Reset PICO to programming mode by toggling 1200 baud connectio
 Ctrl+A l          Start / stop logging the session to a file
 Ctrl+A v          Toggle hex view of incoming bytes
 Ctrl+A f          Freeze / resume the screen, output keeps being captured
+Ctrl+A b          Send a break to the device
+Ctrl+A s          Send a text file to the device line by line
+Ctrl+A 1-9        Send a macro defined with --macro
+Ctrl+A o          Toggle local echo of what you type
 Ctrl+A c          Clear terminal screen
 Ctrl+A q          Exit terminal program
 Ctrl+A Ctrl+A     Send a literal Ctrl+A to the connected device
@@ -64,6 +68,60 @@ happens.
 ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
+
+## Sending a file
+
+`Ctrl+A s` prompts for a path and sends it line by line; `--send-file` sends one
+straight after connecting. This is how a MicroPython or CircuitPython script
+gets onto a board over the REPL, and how a config script gets replayed.
+
+Lines go out with whatever `--newline` is set to. Press the escape key during a
+send to stop part way.
+
+A device with no flow control and a small receive buffer will drop lines if you
+push them as fast as the port allows. Two ways to pace it:
+
+```
+SerialTerm -P COM3 --send-file setup.py --send-delay 20
+SerialTerm -P COM3 --send-file setup.py --send-wait ">>> "
+```
+
+`--send-delay` waits a fixed number of milliseconds between lines, which is
+crude but needs to know nothing about the device. `--send-wait` waits for the
+device's prompt to come back before sending the next line, which is the reliable
+version - it gives up after `--send-timeout` milliseconds, 2000 by default, and
+says which line it stopped on.
+
+## Macros
+
+`--macro` binds text to `Ctrl+A 1` through `Ctrl+A 9`, and is repeatable:
+
+```
+SerialTerm -P COM3 --macro "1=reboot\r" --macro "2=\x03" --macro "3=\e[2J"
+```
+
+With full key passthrough the function keys belong to the device, so macros live
+behind the escape key, the way `screen` does it. The defined ones are listed by
+`Ctrl+A ?` alongside the built in keys.
+
+The text understands `\r`, `\n`, `\t`, `\0`, `\e`, `\` and `\xNN` for an
+arbitrary byte, since a macro is nearly always a command plus a carriage return.
+
+## Local echo
+
+Half duplex devices and raw AT command modems echo nothing back, so you type
+blind. `--local-echo`, or `Ctrl+A o` during a session, shows what you send.
+
+Echoed bytes go through the same renderer as device output, so they obey
+whichever view is current - in hex view you see what you sent in hex as well,
+interleaved with what came back.
+
+## Break
+
+`Ctrl+A b` holds the line in a break condition for 250 ms. A break is a run of
+zero bits longer than a character frame, so no sequence of bytes can produce one -
+it needs the driver. It interrupts U-Boot, reaches Linux SysRq, and drops some
+bootloaders into command mode.
 
 ## Freeze
 
@@ -141,6 +199,12 @@ Options:
   -nl, --newline <cr|crlf|lf>                     Bytes sent by the Enter key [default: cr]
   -l, --log <log>                                 Append everything the device sends to a file. Ctrl+A l starts and stops it during a session
   -lr, --log-raw                                  Keep ANSI escape sequences in the log instead of stripping them [default: False]
+  -sf, --send-file <send-file>                    Send a text file to the device line by line after connecting. Ctrl+A s sends one during a session
+  -sd, --send-delay <send-delay>                  Milliseconds to pause between lines when sending a file [default: 0]
+  -sw, --send-wait <send-wait>                    Wait for this text from the device after each line, eg. the REPL prompt
+  -st, --send-timeout <send-timeout>              How long to wait for --send-wait before giving up, in milliseconds [default: 2000]
+  -m, --macro <macro>                             Bind text to Ctrl+A 1 through Ctrl+A 9, eg. --macro 1=reboot\r. Repeatable
+  -le, --local-echo                               Show what you type. For devices that do not echo it back themselves [default: False]
   -ts, --timestamp <abs|off|rel>                  Prefix each line from the device with a time, abs is the clock and rel is seconds since connecting [default: off]
   -db, --data-bits <5|6|7|8>                      Sets the standard length of data bits per byte [default: 8]
   -pa, --parity <Even|Mark|None|Odd|Space>        Sets the parity-checking protocol [default: None]

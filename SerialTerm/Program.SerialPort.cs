@@ -194,6 +194,7 @@ namespace TerminalConsole
             try
             {
                 _serialPort.Write(data, 0, data.Length);
+                EchoLocally(data);
             }
             catch (TimeoutException) { }
             catch (InvalidOperationException) { }

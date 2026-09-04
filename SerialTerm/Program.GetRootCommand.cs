@@ -85,6 +85,49 @@ namespace TerminalConsole
                     "Keep ANSI escape sequences in the log instead of stripping them");
             rootCommand.AddOption(logRawOption);
 
+            var sendFileOption = new Option<string>(
+                    new string[] { "--send-file", "-sf" },
+                    "Send a text file to the device line by line after connecting. Ctrl+A s sends one during a session");
+            rootCommand.AddOption(sendFileOption);
+
+            var sendDelayOption = new Option<int>(
+                    new string[] { "--send-delay", "-sd" },
+                    getDefaultValue: () => 0,
+                    "Milliseconds to pause between lines when sending a file");
+            sendDelayOption.AddValidator(optionResult =>
+            {
+                if (optionResult.Tokens.Count == 0)
+                    return;
+
+                string value = optionResult.Tokens[0].Value;
+                if (!int.TryParse(value, out int delay) || delay < 0)
+                    optionResult.ErrorMessage = $"'{value}' is not a valid send delay, it must be zero or more milliseconds.";
+            });
+            rootCommand.AddOption(sendDelayOption);
+
+            var sendWaitOption = new Option<string>(
+                    new string[] { "--send-wait", "-sw" },
+                    "Wait for this text from the device after each line, eg. the REPL prompt");
+            rootCommand.AddOption(sendWaitOption);
+
+            var sendTimeoutOption = new Option<int>(
+                    new string[] { "--send-timeout", "-st" },
+                    getDefaultValue: () => 2000,
+                    "How long to wait for --send-wait before giving up, in milliseconds");
+            rootCommand.AddOption(sendTimeoutOption);
+
+            var macroOption = new Option<string[]>(
+                    new string[] { "--macro", "-m" },
+                    @"Bind text to Ctrl+A 1 through Ctrl+A 9, eg. --macro 1=reboot\r. Repeatable");
+            macroOption.AllowMultipleArgumentsPerToken = false;
+            rootCommand.AddOption(macroOption);
+
+            var localEchoOption = new Option<bool>(
+                    new string[] { "--local-echo", "-le" },
+                    getDefaultValue: () => false,
+                    "Show what you type. For devices that do not echo it back themselves");
+            rootCommand.AddOption(localEchoOption);
+
             var timestampOption = NamedOption(
                 new string[] { "--timestamp", "-ts" },
                 "Prefix each line from the device with a time, abs is the clock and rel is seconds since connecting",
@@ -156,7 +199,13 @@ namespace TerminalConsole
                         handshake = ValueOf(HandshakeValues, context.ParseResult.GetValueForOption(hsOption), Handshake.None),
                         legacyKeys = context.ParseResult.GetValueForOption(legacyKeysOption),
                         log = context.ParseResult.GetValueForOption(logOption),
+                        localEcho = context.ParseResult.GetValueForOption(localEchoOption),
                         logRaw = context.ParseResult.GetValueForOption(logRawOption),
+                        macros = context.ParseResult.GetValueForOption(macroOption),
+                        sendDelay = context.ParseResult.GetValueForOption(sendDelayOption),
+                        sendFile = context.ParseResult.GetValueForOption(sendFileOption),
+                        sendTimeout = context.ParseResult.GetValueForOption(sendTimeoutOption),
+                        sendWait = context.ParseResult.GetValueForOption(sendWaitOption),
                         newline = context.ParseResult.GetValueForOption(newlineOption),
                         noHint = context.ParseResult.GetValueForOption(noHintOption),
                         parity = ValueOf(ParityValues, context.ParseResult.GetValueForOption(parityOption), Parity.None),

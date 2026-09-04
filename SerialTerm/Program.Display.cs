@@ -23,6 +23,9 @@ namespace TerminalConsole
                 new[] { $"{prefix} l", "Start / stop logging the session to a file" },
                 new[] { $"{prefix} v", "Toggle hex view of incoming bytes" },
                 new[] { $"{prefix} f", "Freeze / resume the screen, output keeps being captured" },
+                new[] { $"{prefix} b", "Send a break to the device" },
+                new[] { $"{prefix} o", "Toggle local echo of what you type" },
+                new[] { $"{prefix} s", "Send a text file to the device line by line" },
                 new[] { $"{prefix} c", "Clear terminal screen" },
                 new[] { $"{prefix} q", "Exit terminal program" },
                 new[] { $"{prefix} {prefix}", $"Send a literal {prefix} to the connected device" },
@@ -38,6 +41,10 @@ namespace TerminalConsole
                 rows.Add(new[] { "Home", "Clear terminal screen" });
                 rows.Add(new[] { "ESC", "Exit terminal program" });
             }
+
+            if (HasMacros)
+                foreach (var macro in MacroList())
+                    rows.Add(new[] { $"{prefix} {macro.Key}", $"Send macro: {macro.Value}" });
 
             SayBlock(() =>
             {

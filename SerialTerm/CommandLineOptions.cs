@@ -22,5 +22,11 @@ namespace TerminalConsole
         public string log { get; set; }
         public bool logRaw { get; set; }
         public string timestamp { get; set; }
+        public bool localEcho { get; set; }
+        public string[] macros { get; set; }
+        public string sendFile { get; set; }
+        public int sendDelay { get; set; }
+        public string sendWait { get; set; }
+        public int sendTimeout { get; set; }
     }
 }
