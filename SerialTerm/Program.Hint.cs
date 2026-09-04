@@ -147,7 +147,7 @@ namespace TerminalConsole
         {
             string prefix = EscapeKeyName();
 
-            string full = $" {prefix}: ? help | d disc | i info | e esp32 | p pico | c clear | q quit ";
+            string full = $" {prefix}: ? help | d disc | i info | e esp32 | p pico | l log | c clear | q quit ";
             if (full.Length <= width)
                 return full;
 

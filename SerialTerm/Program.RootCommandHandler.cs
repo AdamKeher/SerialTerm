@@ -41,6 +41,7 @@ namespace TerminalConsole
             _legacyKeys = options.legacyKeys;
             _hintEnabled = !options.noHint;
             SetLineDiscipline(options.backspace, options.newline);
+            ConfigureLog(options);
 
             // open serial port
             SayLine($"Connecting to: {SerialPortToString()}");
@@ -84,6 +85,7 @@ namespace TerminalConsole
             {
                 RestoreConsoleMode();
                 RestoreControlC();
+                CloseLog();
 
                 // hand the port back before exiting, so a flash tool started
                 // straight afterwards does not race us for it

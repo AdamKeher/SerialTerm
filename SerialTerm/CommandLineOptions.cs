@@ -19,5 +19,7 @@ namespace TerminalConsole
         public bool noHint { get; set; }
         public string backspace { get; set; }
         public string newline { get; set; }
+        public string log { get; set; }
+        public bool logRaw { get; set; }
     }
 }

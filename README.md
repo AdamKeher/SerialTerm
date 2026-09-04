@@ -1,4 +1,4 @@
-# SerialTerm
+﻿# SerialTerm
 A simple serial listener program for Windows Terminal command line replacement
 
 Get a precompiled single file version 0.2.0 @ https://github.com/AdamKeher/SerialTerm/releases
@@ -36,6 +36,7 @@ Ctrl+A d          Disconnect / Reconnect serial connection
 Ctrl+A i          Display serial port settings
 Ctrl+A e          Soft reset ESP32 by toggling RTS enabled
 Ctrl+A p          Reset PICO to programming mode by toggling 1200 baud connection
+Ctrl+A l          Start / stop logging the session to a file
 Ctrl+A c          Clear terminal screen
 Ctrl+A q          Exit terminal program
 Ctrl+A Ctrl+A     Send a literal Ctrl+A to the connected device
@@ -50,6 +51,17 @@ the device has drawn. Pass `--no-hint` to turn it off.
 Use `--escape-key` to move it somewhere else, for example `--escape-key ^]` for
 the telnet escape character. `--legacy-keys` additionally restores the original
 F1 - F5, Home and ESC shortcuts, but with it ESC no longer reaches the device.
+
+## Logging
+
+`--log session.log` appends everything the device sends to a file. `Ctrl+A l`
+starts and stops it mid session - with no `--log` given it picks a name from the
+port and the time, so capture can be started the moment something interesting
+happens.
+
+ANSI escape sequences are stripped so the log stays readable and greppable;
+`--log-raw` keeps them. The file is opened in append mode, so stopping and
+restarting during a session adds to it rather than truncating.
 
 ## Backspace and Enter
 
@@ -80,6 +92,8 @@ Options:
   -nh, --no-hint                                  Do not show the command hint line while the escape key is pending [default: False]
   -bs, --backspace <bs|del>                       Byte sent by the Backspace key, del is 0x7F and bs is 0x08 [default: del]
   -nl, --newline <cr|crlf|lf>                     Bytes sent by the Enter key [default: cr]
+  -l, --log <log>                                 Append everything the device sends to a file. Ctrl+A l starts and stops it during a session
+  -lr, --log-raw                                  Keep ANSI escape sequences in the log instead of stripping them [default: False]
   -db, --data-bits <5|6|7|8>                      Sets the standard length of data bits per byte [default: 8]
   -pa, --parity <Even|Mark|None|Odd|Space>        Sets the parity-checking protocol [default: None]
   -sb, --stop-bits <One|OnePointFive|Two>         Sets the standard number of stopbits per byte [default: One]
