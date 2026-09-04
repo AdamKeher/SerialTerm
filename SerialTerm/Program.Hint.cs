@@ -173,7 +173,7 @@ namespace TerminalConsole
             }
         }
 
-        private static string HintText(int width)
+        internal static string HintText(int width)
         {
             string prefix = EscapeKeyName();
 

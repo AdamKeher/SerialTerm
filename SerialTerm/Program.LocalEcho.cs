@@ -1,8 +1,8 @@
-namespace TerminalConsole
+﻿namespace TerminalConsole
 {
     partial class Program
     {
-        private static bool _localEcho;
+        internal static bool _localEcho;
 
         // Half duplex devices and raw AT command modems echo nothing back, so
         // without this you type blind. Ctrl+A o.

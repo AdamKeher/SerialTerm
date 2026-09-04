@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 
 namespace TerminalConsole
@@ -7,10 +7,10 @@ namespace TerminalConsole
     {
         private const int HexWidth = 16;
 
-        private static bool _hexView;
+        internal static bool _hexView;
         private static readonly byte[] _hexLine = new byte[HexWidth];
-        private static int _hexCount;
-        private static long _hexOffset;
+        internal static int _hexCount;
+        internal static long _hexOffset;
 
         // Ctrl+A v. Not Ctrl+A x, which already quits.
         private static void ToggleHexView()
@@ -34,7 +34,7 @@ namespace TerminalConsole
         // down to guessing. Each read from the port ends its line, so the
         // boundaries between bursts stay visible, which is usually where the
         // frame boundaries are too.
-        private static void RenderHex(byte[] buffer, int count)
+        internal static void RenderHex(byte[] buffer, int count)
         {
             for (int index = 0; index < count; index++)
             {
@@ -47,7 +47,7 @@ namespace TerminalConsole
             FlushHexLine();
         }
 
-        private static void FlushHexLine()
+        internal static void FlushHexLine()
         {
             if (_hexCount == 0)
                 return;

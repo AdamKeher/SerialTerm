@@ -9,7 +9,7 @@ namespace TerminalConsole
     {
         private static string _sendPath;
         private static int _sendDelay;
-        private static string _sendWait;
+        internal static string _sendWait;
         private static int _sendTimeout;
 
         // The last bytes the device sent, so a send can wait for a prompt to
@@ -18,7 +18,7 @@ namespace TerminalConsole
         private const int RecentSize = 256;
 
         private static readonly byte[] _recent = new byte[RecentSize];
-        private static int _recentCount;
+        internal static int _recentCount;
 
         private static void ConfigureSend(CommandLineOptions options)
         {
@@ -28,7 +28,7 @@ namespace TerminalConsole
             _sendTimeout = options.sendTimeout;
         }
 
-        private static void NoteReceived(byte[] buffer, int count)
+        internal static void NoteReceived(byte[] buffer, int count)
         {
             if (_sendWait == null)
                 return;
@@ -45,7 +45,7 @@ namespace TerminalConsole
             }
         }
 
-        private static bool RecentEndsWith(string text)
+        internal static bool RecentEndsWith(string text)
         {
             byte[] want = Encoding.ASCII.GetBytes(text);
 

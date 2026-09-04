@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 
 namespace TerminalConsole
@@ -8,11 +8,11 @@ namespace TerminalConsole
         // A chatty device would grow this without limit, so the buffer is
         // capped. Past the cap the oldest bytes go, since the reason to freeze
         // is almost always to read something that just happened.
-        private const int FreezeBufferLimit = 1 << 20;
+        internal const int FreezeBufferLimit = 1 << 20;
 
-        private static bool _frozen;
-        private static MemoryStream _freezeBuffer;
-        private static long _freezeDropped;
+        internal static bool _frozen;
+        internal static MemoryStream _freezeBuffer;
+        internal static long _freezeDropped;
 
         // Ctrl+A f. Unlike Ctrl+A d, which closes the port, the device keeps
         // sending and nothing is lost - the screen simply stops moving, so a
@@ -50,7 +50,7 @@ namespace TerminalConsole
                 RenderDeviceBytes(held, held.Length);
         }
 
-        private static void HoldWhileFrozen(byte[] buffer, int count)
+        internal static void HoldWhileFrozen(byte[] buffer, int count)
         {
             _freezeBuffer.Write(buffer, 0, count);
 

@@ -9,7 +9,7 @@ namespace TerminalConsole
         // TableView. That package never shipped past 0.4.0-alpha, and its
         // renderer needed Console.WindowWidth, which throws the moment output
         // is redirected.
-        private static void WriteTable(IReadOnlyList<string> headers, IReadOnlyList<string[]> rows)
+        internal static void WriteTable(IReadOnlyList<string> headers, IReadOnlyList<string[]> rows)
         {
             int columns = headers.Count;
             int[] widths = new int[columns];
@@ -33,7 +33,7 @@ namespace TerminalConsole
             });
         }
 
-        private static string Row(IReadOnlyList<string> cells, int[] widths)
+        internal static string Row(IReadOnlyList<string> cells, int[] widths)
         {
             var line = new System.Text.StringBuilder();
 

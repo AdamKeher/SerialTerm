@@ -1,21 +1,21 @@
-using System;
+﻿using System;
 using System.Text;
 
 namespace TerminalConsole
 {
     partial class Program
     {
-        private enum TimestampMode { Off, Absolute, Relative }
+        internal enum TimestampMode { Off, Absolute, Relative }
 
-        private static TimestampMode _timestamps = TimestampMode.Off;
+        internal static TimestampMode _timestamps = TimestampMode.Off;
         private static DateTime _connectedAt = DateTime.UtcNow;
 
         // the console and the log are separate streams and can be mid line at
         // different points, so each tracks its own position
-        private static bool _consoleAtLineStart = true;
+        internal static bool _consoleAtLineStart = true;
         private static bool _logAtLineStart = true;
 
-        private static void ConfigureTimestamps(string mode)
+        internal static void ConfigureTimestamps(string mode)
         {
             _timestamps = mode.ToLowerInvariant() switch
             {
@@ -29,7 +29,7 @@ namespace TerminalConsole
 
         private static bool TimestampsEnabled => _timestamps != TimestampMode.Off;
 
-        private static string TimestampPrefix()
+        internal static string TimestampPrefix()
         {
             return _timestamps == TimestampMode.Absolute
                 ? $"[{DateTime.Now:HH:mm:ss.fff}] "
@@ -40,7 +40,7 @@ namespace TerminalConsole
         // asking for a prefix wherever a new line begins. A run that ends
         // without a newline leaves the caller mid line, so the next batch does
         // not get a second timestamp in the middle of it.
-        private static void WriteTimestamped(
+        internal static void WriteTimestamped(
             byte[] buffer, int count, ref bool atLineStart, Action<byte[], int, int> write, Action<string> writeText)
         {
             int index = 0;
@@ -67,7 +67,7 @@ namespace TerminalConsole
             }
         }
 
-        private static byte[] Ascii(string text)
+        internal static byte[] Ascii(string text)
         {
             return Encoding.ASCII.GetBytes(text);
         }

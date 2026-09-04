@@ -37,7 +37,7 @@ namespace TerminalConsole
             return matched.ToArray();
         }
 
-        private static bool Contains(string value, string match)
+        internal static bool Contains(string value, string match)
         {
             return value != null && value.Contains(match, StringComparison.OrdinalIgnoreCase);
         }
@@ -125,7 +125,7 @@ namespace TerminalConsole
         }
 
         // "USB\VID_10C4&PID_EA60" -> "10C4:EA60"
-        private static string UsbHardwareId(string deviceName)
+        internal static string UsbHardwareId(string deviceName)
         {
             int vid = deviceName.IndexOf("VID_", StringComparison.OrdinalIgnoreCase);
             int pid = deviceName.IndexOf("PID_", StringComparison.OrdinalIgnoreCase);

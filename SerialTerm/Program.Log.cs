@@ -129,11 +129,11 @@ namespace TerminalConsole
         // Cursor movement and colour make a log unreadable and ungreppable, so
         // they come out by default. The filter is a state machine because a
         // sequence can be split across two reads from the port.
-        private enum AnsiState { Text, Escape, Csi, Osc, OscEscape }
+        internal enum AnsiState { Text, Escape, Csi, Osc, OscEscape }
 
-        private static AnsiState _ansiState = AnsiState.Text;
+        internal static AnsiState _ansiState = AnsiState.Text;
 
-        private static int StripAnsi(byte[] input, int count, byte[] output)
+        internal static int StripAnsi(byte[] input, int count, byte[] output)
         {
             int written = 0;
 
