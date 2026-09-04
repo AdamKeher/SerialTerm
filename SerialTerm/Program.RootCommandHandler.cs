@@ -14,6 +14,8 @@ namespace TerminalConsole
 
         static void RootCommmandHandler(InvocationContext context, CommandLineOptions options)
         {
+            DetectConsole();
+
             // The SerialPort property setters range check and throw. The options
             // are validated during parsing, so reaching this catch means a
             // combination we did not anticipate - report it in one line rather
@@ -63,7 +65,7 @@ namespace TerminalConsole
             // Ctrl+C belongs to the connected device rather than to SerialTerm, and
             // the console has to be asked to interpret the escape sequences a
             // device sends before a full screen application can draw with them
-            Console.TreatControlCAsInput = true;
+            EnableControlCPassthrough();
             EnableVirtualTerminal();
 
             try
@@ -73,7 +75,7 @@ namespace TerminalConsole
             finally
             {
                 RestoreConsoleMode();
-                Console.TreatControlCAsInput = false;
+                RestoreControlC();
             }
         }
 
@@ -117,7 +119,7 @@ namespace TerminalConsole
                 }
 
                 // control keys
-                if (Console.KeyAvailable)
+                if (KeyAvailable())
                     paused = ProcessKeys(paused);
                 else
                     Thread.Sleep(PollInterval);

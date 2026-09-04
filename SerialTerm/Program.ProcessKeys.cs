@@ -63,7 +63,7 @@ namespace TerminalConsole
                     break;
 
                 case 'c':
-                    Console.Clear();
+                    ClearScreen();
                     break;
 
                 case 'd':
@@ -98,7 +98,7 @@ namespace TerminalConsole
             switch (key.Key)
             {
                 case ConsoleKey.Home:
-                    Console.Clear();
+                    ClearScreen();
                     return true;
 
                 case ConsoleKey.Escape:
