@@ -51,7 +51,23 @@ namespace TerminalConsole
         // kept and put back when the hint goes away.
         private static void ShowHint()
         {
-            if (!_hintEnabled || !OperatingSystem.IsWindows() || _hintVisible)
+            if (!_hintEnabled || _hintVisible)
+                return;
+
+            // with a reserved row there is nothing underneath to preserve - the
+            // hint simply takes the row until a command key is pressed
+            if (_statusEnabled)
+            {
+                lock (_consoleLock)
+                {
+                    PaintBottomLine(HintText(_statusColumns));
+                    _hintVisible = true;
+                }
+
+                return;
+            }
+
+            if (!OperatingSystem.IsWindows())
                 return;
 
             lock (_consoleLock)
@@ -94,7 +110,21 @@ namespace TerminalConsole
 
         private static void HideHint()
         {
-            if (!OperatingSystem.IsWindows() || !_hintVisible || _hintSaved == null)
+            if (!_hintVisible)
+                return;
+
+            if (_statusEnabled)
+            {
+                lock (_consoleLock)
+                {
+                    _hintVisible = false;
+                    PaintStatus();
+                }
+
+                return;
+            }
+
+            if (!OperatingSystem.IsWindows() || _hintSaved == null)
                 return;
 
             lock (_consoleLock)

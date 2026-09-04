@@ -72,6 +72,27 @@ ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
 
+## Status line
+
+`--status-line` reserves the bottom row for the connection state, so
+"Disconnected." and "Reconnected." stop scrolling away into the device's own
+output:
+
+```
+ COM3 115200 8N1  connected  DTR on  RTS off  LOG  HEX              Ctrl+A ?
+```
+
+It shows the port, baud, framing, connection state, both control lines, and
+whichever of logging, hex view, freeze, local echo and timestamps are on.
+
+The row is reserved with a DECSTBM scroll region, so device output scrolls above
+it and can never overwrite it. That is also why it is off by default: the device
+gets one row fewer than the window has, and a full screen program on the device
+that draws to the last row will get it wrong.
+
+While the status line is on, the escape key hint shares the same row instead of
+saving and restoring what was underneath.
+
 ## DTR, RTS and ESP32 download mode
 
 `Ctrl+A t` shows both control lines and lets either be flipped by hand, for
@@ -223,6 +244,7 @@ Options:
   -rts, --disable-rts                             Disable RTS for serial connection [default: False]
   -ek, --escape-key <escape-key>                  Set the escape key used to reach SerialTerm commands, eg. ^A, ^], 0x1D [default: ^A]
   -lk, --legacy-keys                              Also bind the original F1-F5, Home and ESC keys, ESC will not reach the device [default: False]
+  -sl, --status-line                              Reserve the bottom row for a status line. Costs the device one row of screen [default: False]
   -nh, --no-hint                                  Do not show the command hint line while the escape key is pending [default: False]
   -bs, --backspace <bs|del>                       Byte sent by the Backspace key, del is 0x7F and bs is 0x08 [default: del]
   -nl, --newline <cr|crlf|lf>                     Bytes sent by the Enter key [default: cr]

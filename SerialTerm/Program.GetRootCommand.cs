@@ -79,6 +79,12 @@ namespace TerminalConsole
                     "Do not show the command hint line while the escape key is pending");
             rootCommand.AddOption(noHintOption);
 
+            var statusLineOption = new Option<bool>(
+                    new string[] { "--status-line", "-sl" },
+                    getDefaultValue: () => false,
+                    "Reserve the bottom row for a status line. Costs the device one row of screen");
+            rootCommand.AddOption(statusLineOption);
+
             var logOption = new Option<string>(
                     new string[] { "--log", "-l" },
                     "Append everything the device sends to a file. Ctrl+A l starts and stops it during a session");
@@ -218,6 +224,7 @@ namespace TerminalConsole
                         port = context.ParseResult.GetValueForOption(portOption),
                         resetEsp32 = context.ParseResult.GetValueForOption(resetEsp32Option),
                         rts = context.ParseResult.GetValueForOption(disableRTSOption),
+                        statusLine = context.ParseResult.GetValueForOption(statusLineOption),
                         stopBits = ValueOf(StopBitsValues, context.ParseResult.GetValueForOption(sbOption), StopBits.One),
                         timestamp = context.ParseResult.GetValueForOption(timestampOption)
                     };

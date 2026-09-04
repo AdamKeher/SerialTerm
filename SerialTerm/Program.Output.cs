@@ -36,7 +36,7 @@ namespace TerminalConsole
         {
             lock (_consoleLock)
             {
-                bool hint = _hintVisible;
+                bool hint = _hintVisible && !_statusEnabled;
                 if (hint) HideHint();
 
                 if (_hexView)
