@@ -101,6 +101,15 @@ namespace TerminalConsole
             {
                 try
                 {
+                    // The window can be resized, or the buffer scrolled by the
+                    // device, between showing the hint and hiding it again.
+                    // _hintRegion then names a different line, and writing the
+                    // saved content back would paint a stale status line over
+                    // live output. Leave it alone if the geometry moved - the
+                    // next write from the device repaints that row anyway.
+                    if (!HintRegionIsCurrent())
+                        return;
+
                     COORD size = new COORD { X = (short)_hintSaved.Length, Y = 1 };
                     COORD origin = new COORD { X = 0, Y = 0 };
                     SMALL_RECT region = _hintRegion;
@@ -112,7 +121,25 @@ namespace TerminalConsole
                 finally
                 {
                     _hintVisible = false;
+                    _hintSaved = null;
                 }
+            }
+        }
+
+        private static bool HintRegionIsCurrent()
+        {
+            try
+            {
+                short row = (short)(Console.WindowTop + Console.WindowHeight - 1);
+                return row == _hintRegion.Top && Console.WindowWidth == _hintSaved.Length;
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return false;
             }
         }
 
