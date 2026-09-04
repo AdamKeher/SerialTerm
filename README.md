@@ -39,6 +39,7 @@ Ctrl+A p          Reset PICO to programming mode by toggling 1200 baud connectio
 Ctrl+A l          Start / stop logging the session to a file
 Ctrl+A v          Toggle hex view of incoming bytes
 Ctrl+A f          Freeze / resume the screen, output keeps being captured
+Ctrl+A b          Send a break to the device
 Ctrl+A c          Clear terminal screen
 Ctrl+A q          Exit terminal program
 Ctrl+A Ctrl+A     Send a literal Ctrl+A to the connected device
@@ -64,6 +65,13 @@ happens.
 ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
+
+## Break
+
+`Ctrl+A b` holds the line in a break condition for 250 ms. A break is a run of
+zero bits longer than a character frame, so no sequence of bytes can produce one -
+it needs the driver. It interrupts U-Boot, reaches Linux SysRq, and drops some
+bootloaders into command mode.
 
 ## Freeze
 
