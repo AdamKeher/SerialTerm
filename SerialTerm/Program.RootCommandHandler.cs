@@ -42,6 +42,7 @@ namespace TerminalConsole
             _hintEnabled = !options.noHint;
             SetLineDiscipline(options.backspace, options.newline);
             _localEcho = options.localEcho;
+            ConfigureMacros(options.macros);
             ConfigureTimestamps(options.timestamp);
             ConfigureLog(options);
 

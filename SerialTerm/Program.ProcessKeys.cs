@@ -50,6 +50,9 @@ namespace TerminalConsole
                 return paused;
             }
 
+            if (key.KeyChar >= '1' && key.KeyChar <= '9' && RunMacro(key.KeyChar))
+                return paused;
+
             switch (char.ToLowerInvariant(key.KeyChar))
             {
                 case '?':

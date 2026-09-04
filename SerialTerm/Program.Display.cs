@@ -41,6 +41,10 @@ namespace TerminalConsole
                 rows.Add(new[] { "ESC", "Exit terminal program" });
             }
 
+            if (HasMacros)
+                foreach (var macro in MacroList())
+                    rows.Add(new[] { $"{prefix} {macro.Key}", $"Send macro: {macro.Value}" });
+
             SayBlock(() =>
             {
                 WriteTable(new[] { "Key", "Function" }, rows);

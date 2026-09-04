@@ -85,6 +85,12 @@ namespace TerminalConsole
                     "Keep ANSI escape sequences in the log instead of stripping them");
             rootCommand.AddOption(logRawOption);
 
+            var macroOption = new Option<string[]>(
+                    new string[] { "--macro", "-m" },
+                    @"Bind text to Ctrl+A 1 through Ctrl+A 9, eg. --macro 1=reboot\r. Repeatable");
+            macroOption.AllowMultipleArgumentsPerToken = false;
+            rootCommand.AddOption(macroOption);
+
             var localEchoOption = new Option<bool>(
                     new string[] { "--local-echo", "-le" },
                     getDefaultValue: () => false,
@@ -164,6 +170,7 @@ namespace TerminalConsole
                         log = context.ParseResult.GetValueForOption(logOption),
                         localEcho = context.ParseResult.GetValueForOption(localEchoOption),
                         logRaw = context.ParseResult.GetValueForOption(logRawOption),
+                        macros = context.ParseResult.GetValueForOption(macroOption),
                         newline = context.ParseResult.GetValueForOption(newlineOption),
                         noHint = context.ParseResult.GetValueForOption(noHintOption),
                         parity = ValueOf(ParityValues, context.ParseResult.GetValueForOption(parityOption), Parity.None),

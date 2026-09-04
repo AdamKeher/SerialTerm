@@ -40,6 +40,7 @@ Ctrl+A l          Start / stop logging the session to a file
 Ctrl+A v          Toggle hex view of incoming bytes
 Ctrl+A f          Freeze / resume the screen, output keeps being captured
 Ctrl+A b          Send a break to the device
+Ctrl+A 1-9        Send a macro defined with --macro
 Ctrl+A o          Toggle local echo of what you type
 Ctrl+A c          Clear terminal screen
 Ctrl+A q          Exit terminal program
@@ -66,6 +67,21 @@ happens.
 ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
+
+## Macros
+
+`--macro` binds text to `Ctrl+A 1` through `Ctrl+A 9`, and is repeatable:
+
+```
+SerialTerm -P COM3 --macro "1=reboot\r" --macro "2=\x03" --macro "3=\e[2J"
+```
+
+With full key passthrough the function keys belong to the device, so macros live
+behind the escape key, the way `screen` does it. The defined ones are listed by
+`Ctrl+A ?` alongside the built in keys.
+
+The text understands `\r`, `\n`, `\t`, `\0`, `\e`, `\` and `\xNN` for an
+arbitrary byte, since a macro is nearly always a command plus a carriage return.
 
 ## Local echo
 
@@ -159,6 +175,7 @@ Options:
   -nl, --newline <cr|crlf|lf>                     Bytes sent by the Enter key [default: cr]
   -l, --log <log>                                 Append everything the device sends to a file. Ctrl+A l starts and stops it during a session
   -lr, --log-raw                                  Keep ANSI escape sequences in the log instead of stripping them [default: False]
+  -m, --macro <macro>                             Bind text to Ctrl+A 1 through Ctrl+A 9, eg. --macro 1=reboot\r. Repeatable
   -le, --local-echo                               Show what you type. For devices that do not echo it back themselves [default: False]
   -ts, --timestamp <abs|off|rel>                  Prefix each line from the device with a time, abs is the clock and rel is seconds since connecting [default: off]
   -db, --data-bits <5|6|7|8>                      Sets the standard length of data bits per byte [default: 8]
