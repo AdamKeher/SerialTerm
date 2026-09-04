@@ -265,8 +265,31 @@ Options:
   -?, -h, --help                                  Show help and usage information
 
 Commands:
-  list  List all serial ports
+  list      List all serial ports
+  profiles  List saved argument profiles
  ```
+
+### Profiles
+
+A bench has the same few boards on it every day, so arguments can be saved and
+recalled by name. Put one argument per line in
+`%APPDATA%\SerialTerm\profiles\esp32.rsp` (`~/.config/SerialTerm/profiles`
+elsewhere):
+
+```
+--match
+CP210x
+--baud
+115200
+--reset-esp32
+--status-line
+```
+
+then run `SerialTerm @esp32`. `SerialTerm profiles` lists what is saved.
+
+`@` also takes a path, so a project can keep its settings in its own repository
+as `@./serial.rsp`. A local file of that name wins over a profile, so a
+project's own settings are never shadowed.
 
 ### Picking a port
 

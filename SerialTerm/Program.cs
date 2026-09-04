@@ -31,9 +31,14 @@ namespace TerminalConsole
             listCommand.AddOption(probeOption);
             listCommand.SetHandler(ListCommmandHandler, probeOption);
             rootCommand.Add(listCommand);
+
+            // create profiles command
+            var profilesCommand = new Command("profiles", "List saved argument profiles");
+            profilesCommand.SetHandler(ProfilesCommandHandler);
+            rootCommand.Add(profilesCommand);
             
             // Parse the incoming args and invoke the handler
-            return rootCommand.Invoke(args);
+            return rootCommand.Invoke(ResolveProfiles(args));
         }
     }
 }
