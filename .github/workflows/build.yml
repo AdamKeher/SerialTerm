@@ -1,0 +1,70 @@
+name: build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  test:
+    # The Windows only paths - console mode, the hint's screen buffer reads, the
+    # device tree reader - are guarded at runtime rather than compiled out, so
+    # the same tests are meant to pass everywhere.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore SerialTerm.sln
+
+      - name: Build
+        run: dotnet build SerialTerm.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test SerialTerm.sln --configuration Release --no-build --verbosity normal
+
+  publish:
+    # Proves every target still produces a single file, which is the thing that
+    # silently broke while the runtime identifier was pinned to win-x64.
+    needs: test
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x64, win-arm64, linux-x64, linux-arm64, osx-x64, osx-arm64]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish ${{ matrix.runtime }}
+        run: >
+          dotnet publish SerialTerm/SerialTerm.csproj
+          --configuration Release
+          --runtime ${{ matrix.runtime }}
+          --output publish/${{ matrix.runtime }}
+
+      - name: Upload ${{ matrix.runtime }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: SerialTerm-${{ matrix.runtime }}
+          path: |
+            publish/${{ matrix.runtime }}/SerialTerm
+            publish/${{ matrix.runtime }}/SerialTerm.exe
+          if-no-files-found: error

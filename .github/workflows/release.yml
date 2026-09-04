@@ -1,0 +1,91 @@
+name: release
+
+# Cutting a release was manual. Tag a version and the binaries build
+# themselves:
+#
+#   git tag v0.3.0 && git push origin v0.3.0
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release, eg. v0.3.0'
+        required: true
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # nothing ships without the tests passing first
+      - name: Test
+        run: dotnet test SerialTerm.sln --configuration Release
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x64, win-arm64, linux-x64, linux-arm64, osx-x64, osx-arm64]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish ${{ matrix.runtime }}
+        run: >
+          dotnet publish SerialTerm/SerialTerm.csproj
+          --configuration Release
+          --runtime ${{ matrix.runtime }}
+          --output publish/${{ matrix.runtime }}
+
+      # one archive per platform, named so the download says what it runs on
+      - name: Package
+        run: |
+          cd publish/${{ matrix.runtime }}
+          if [ -f SerialTerm.exe ]; then
+            zip -j ../../SerialTerm-${{ matrix.runtime }}.zip SerialTerm.exe
+          else
+            chmod +x SerialTerm
+            tar -czf ../../SerialTerm-${{ matrix.runtime }}.tar.gz SerialTerm
+          fi
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.runtime }}
+          path: SerialTerm-${{ matrix.runtime }}.*
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: package-*
+          merge-multiple: true
+
+      - name: Draft the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          draft: true
+          generate_release_notes: true
+          files: SerialTerm-*
