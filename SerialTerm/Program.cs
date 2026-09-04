@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.IO;
 using System.IO.Ports;
 using System.Threading;
 
@@ -11,6 +12,8 @@ namespace TerminalConsole
         static SerialPort _serialPort;
         static bool _continue;
         private static InvocationContext _invocationContext;
+        static readonly object _consoleLock = new object();
+        static Stream _standardOutput;
 
         public static int Main(string[] args)
         {

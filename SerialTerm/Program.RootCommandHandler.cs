@@ -7,14 +7,27 @@ namespace TerminalConsole
 {
     partial class Program
     {
+        // keys are polled often enough not to hold up typing, while reconnection
+        // is retried at a more relaxed pace
+        private const int PollInterval = 5;
+        private const int ReconnectInterval = 500;
+
         static void RootCommmandHandler(InvocationContext context, CommandLineOptions options)
         {
             _invocationContext = context;
 
             _serialPort = GetSerialPort(options);
+            _escapeKey = ParseEscapeKey(options.escapeKey);
+            _legacyKeys = options.legacyKeys;
+            _hintEnabled = !options.noHint;
 
             // open serial port
             Console.WriteLine("Connecting to: {0}", SerialPortToString());
+            Console.WriteLine("Press {0} ? for the list of terminal keys", EscapeKeyName());
+
+            // set when the user has already been told the port is not available,
+            // so the retry loop does not repeat itself
+            bool reported = false;
 
             try
             {
@@ -22,44 +35,84 @@ namespace TerminalConsole
                 if (options.resetEsp32)
                     ResetEsp32(100);
             }
+            catch (UnauthorizedAccessException)
+            {
+                Console.WriteLine(PortInUseMessage());
+                reported = true;
+            }
             catch (Exception)
             {
                 Console.WriteLine($"Failed to open {_serialPort.PortName}");
+                reported = true;
             }
 
-            // wait while receiving data and handle disconnection and control keys
-            bool reconnecting = false;
+            // Ctrl+C belongs to the connected device rather than to SerialTerm, and
+            // the console has to be asked to interpret the escape sequences a
+            // device sends before a full screen application can draw with them
+            Console.TreatControlCAsInput = true;
+            EnableVirtualTerminal();
+
+            try
+            {
+                TerminalLoop(options, reported);
+            }
+            finally
+            {
+                RestoreConsoleMode();
+                Console.TreatControlCAsInput = false;
+            }
+        }
+
+        // wait while receiving data and handle disconnection and control keys
+        private static void TerminalLoop(CommandLineOptions options, bool reported)
+        {
             bool paused = false;
+            DateTime lastConnectAttempt = DateTime.MinValue;
             _continue = true;
+
             while (_continue)
             {
                 // handle serial disconnection and reconnection
-                if (!paused && !_serialPort.IsOpen)
+                if (!paused && !_serialPort.IsOpen
+                    && (DateTime.UtcNow - lastConnectAttempt).TotalMilliseconds >= ReconnectInterval)
                 {
+                    lastConnectAttempt = DateTime.UtcNow;
+
                     try
                     {
                         _serialPort.Open();
-                        reconnecting = false;
-                        Console.WriteLine("Reconnected.");
+                        if (reported) Console.WriteLine("Reconnected.");
+                        reported = false;
                     }
                     catch (System.IO.FileNotFoundException)
                     {
-                        if (!reconnecting) Console.WriteLine("Disconnected.");
+                        if (!reported) Console.WriteLine("Disconnected.");
                         if (options.disconnectExit)
                             return;
-                        reconnecting = true;
+                        reported = true;
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // the port is there but another program holds it open, so
+                        // keep waiting rather than failing - it is released again
+                        // when that program exits
+                        if (!reported) Console.WriteLine(PortInUseMessage());
+                        reported = true;
                     }
                     catch (System.IO.IOException) { }
                 }
 
                 // control keys
                 if (Console.KeyAvailable)
-                {
                     paused = ProcessKeys(paused);
-                }
-
-                Thread.Sleep(100);
+                else
+                    Thread.Sleep(PollInterval);
             }
+        }
+
+        private static string PortInUseMessage()
+        {
+            return $"{_serialPort.PortName} is in use by another program. Waiting for it to be released ...";
         }
     }
 }

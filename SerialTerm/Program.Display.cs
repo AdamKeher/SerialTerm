@@ -19,14 +19,28 @@ namespace TerminalConsole
                 _invocationContext.BindingContext.OutputMode(),
                 true);
 
+            var prefix = EscapeKeyName();
+
             var helpList = new List<dynamic>();
-            helpList.Add(new { Key = "F1", Function = "Display SerialTerm key help" });
-            helpList.Add(new { Key = "F2", Function = "Disconnect / Reconnect serial connection" });
-            helpList.Add(new { Key = "F3", Function = "Display serial port settings" });
-            helpList.Add(new { Key = "F4", Function = "Soft reset ESP32 by toggling RTS enabled" });
-            helpList.Add(new { Key = "F5", Function = "Reset PICO to programming mode by toggling 1200 baud connection" });
-            helpList.Add(new { Key = "Home", Function = "Clear terminal screen" });
-            helpList.Add(new { Key = "ESC", Function = "Exit terminal program" });
+            helpList.Add(new { Key = $"{prefix} ?", Function = "Display SerialTerm key help" });
+            helpList.Add(new { Key = $"{prefix} d", Function = "Disconnect / Reconnect serial connection" });
+            helpList.Add(new { Key = $"{prefix} i", Function = "Display serial port settings" });
+            helpList.Add(new { Key = $"{prefix} e", Function = "Soft reset ESP32 by toggling RTS enabled" });
+            helpList.Add(new { Key = $"{prefix} p", Function = "Reset PICO to programming mode by toggling 1200 baud connection" });
+            helpList.Add(new { Key = $"{prefix} c", Function = "Clear terminal screen" });
+            helpList.Add(new { Key = $"{prefix} q", Function = "Exit terminal program" });
+            helpList.Add(new { Key = $"{prefix} {prefix}", Function = $"Send a literal {prefix} to the connected device" });
+
+            if (_legacyKeys)
+            {
+                helpList.Add(new { Key = "F1", Function = "Display SerialTerm key help" });
+                helpList.Add(new { Key = "F2", Function = "Disconnect / Reconnect serial connection" });
+                helpList.Add(new { Key = "F3", Function = "Display serial port settings" });
+                helpList.Add(new { Key = "F4", Function = "Soft reset ESP32 by toggling RTS enabled" });
+                helpList.Add(new { Key = "F5", Function = "Reset PICO to programming mode by toggling 1200 baud connection" });
+                helpList.Add(new { Key = "Home", Function = "Clear terminal screen" });
+                helpList.Add(new { Key = "ESC", Function = "Exit terminal program" });
+            }
 
             var tableView = new TableView<dynamic>
             {
@@ -38,8 +52,11 @@ namespace TerminalConsole
 
             Region region = new Region(0, 0, new Size(Console.WindowWidth, Console.BufferHeight));
             tableView.Render(consoleRenderer, region);
-
             Console.WriteLine();
+            Console.WriteLine(_legacyKeys
+                ? "Every other key is sent to the connected device. ESC and F1-F5 are held by SerialTerm."
+                : "Every other key, ESC and Ctrl+C included, is sent to the connected device.");
+
             Console.WriteLine();
         }
 

@@ -47,6 +47,24 @@ namespace TerminalConsole
                     "Disable RTS for serial connection");
             rootCommand.AddOption(disableRTSOption);
 
+            var escapeKeyOption = new Option<string>(
+                    new string[] { "--escape-key", "-ek" },
+                    getDefaultValue: () => "^A",
+                    "Set the escape key used to reach SerialTerm commands, eg. ^A, ^], 0x1D");
+            rootCommand.AddOption(escapeKeyOption);
+
+            var legacyKeysOption = new Option<bool>(
+                    new string[] { "--legacy-keys", "-lk" },
+                    getDefaultValue: () => false,
+                    "Also bind the original F1-F5, Home and ESC keys, ESC will not reach the device");
+            rootCommand.AddOption(legacyKeysOption);
+
+            var noHintOption = new Option<bool>(
+                    new string[] { "--no-hint", "-nh" },
+                    getDefaultValue: () => false,
+                    "Do not show the command hint line while the escape key is pending");
+            rootCommand.AddOption(noHintOption);
+
             var dbOption = new Option<int>(
                 new string[] { "--data-bits", "-db" },
                 getDefaultValue: () => 8,
@@ -122,7 +140,10 @@ namespace TerminalConsole
                         dataBits = context.ParseResult.GetValueForOption(dbOption),
                         disconnectExit = context.ParseResult.GetValueForOption(disconnectExitOpen),
                         dtr = context.ParseResult.GetValueForOption(disableDTROption),
+                        escapeKey = context.ParseResult.GetValueForOption(escapeKeyOption),
                         handshake = context.ParseResult.GetValueForOption(hsOption),
+                        legacyKeys = context.ParseResult.GetValueForOption(legacyKeysOption),
+                        noHint = context.ParseResult.GetValueForOption(noHintOption),
                         parity = context.ParseResult.GetValueForOption(parityOption),
                         port = context.ParseResult.GetValueForOption(portOption),
                         resetEsp32 = context.ParseResult.GetValueForOption(resetEsp32Option),

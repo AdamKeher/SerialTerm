@@ -20,27 +20,60 @@ SimpleTerm was created to provide a simple command line driven serial port liste
 * Soft reset Raspberry PI Pico
 * Simple single file delployment
 * Added support for NET6.0
+* Full key pass through, so full screen programs such as `vi`, `nano` and `htop` work over the connection
+
+## Terminal keys
+
+SerialTerm sends every key to the connected device, including ESC, the function
+keys, the arrows and Ctrl+C. Its own commands sit behind an escape key, `Ctrl+A`
+by default: press the escape key, then a command key.
+
+```
+Ctrl+A ?          Display SerialTerm key help
+Ctrl+A d          Disconnect / Reconnect serial connection
+Ctrl+A i          Display serial port settings
+Ctrl+A e          Soft reset ESP32 by toggling RTS enabled
+Ctrl+A p          Reset PICO to programming mode by toggling 1200 baud connection
+Ctrl+A c          Clear terminal screen
+Ctrl+A q          Exit terminal program
+Ctrl+A Ctrl+A     Send a literal Ctrl+A to the connected device
+```
+
+Pressing the escape key paints a hint line along the bottom of the window
+listing the commands, and puts back whatever was underneath it as soon as a
+command key is pressed. It is drawn straight into the console buffer, so it
+does not disturb the cursor, the colours, or anything a full screen program on
+the device has drawn. Pass `--no-hint` to turn it off.
+
+Use `--escape-key` to move it somewhere else, for example `--escape-key ^]` for
+the telnet escape character. `--legacy-keys` additionally restores the original
+F1 - F5, Home and ESC shortcuts, but with it ESC no longer reaches the device.
 
 ## Syntax
 ```
-SerialTerm:
+Description:
   SerialTerm - Simple serial port terminal program. (c)2021 AKsevenFour - https://github.com/AdamKeher/SerialTerm
 
 Usage:
-  SerialTerm [options] [command]
+  SerialTerm [command] [options]
 
 Options:
-  -P, --port <port>                                 Set the serial port to listen on
-  -b, --baud <baud>                                 Set serial port baud rate [default: 115200]
-  -de, --disconnect-exit                            Exit terminal on disconnection [default: False]
-  -r, --reset-esp32                                 Reset ESP32 on connection [default: False]
-  -db, --data-bits <5|6|7|8>                        Sets the standard length of data bits per byte [default: 8]
-  -pa, --parity <Even|Mark|None|Odd|Space>          Sets the parity-checking protocol [default: None]
-  -sb, --stop-bits <One|OnePointFive|Two>           Sets the standard number of stopbits per byte [default: One]
-  -hs, --handshake <None|RTS|RTSXonXoff|XonXoff>    Specifies the control protocol used in establishing a serial port communication [default: None]
-  --version                                         Show version information
-  -?, -h, --help                                    Show help and usage information
+  -P, --port <port>                               Set the serial port to listen on
+  -b, --baud <baud>                               Set serial port baud rate [default: 115200]
+  -de, --disconnect-exit                          Exit terminal on disconnection [default: False]
+  -r, --reset-esp32                               Reset ESP32 on connection [default: False]
+  -dtr, --disable-dtr                             Disable DTR for serial connection [default: False]
+  -rts, --disable-rts                             Disable RTS for serial connection [default: False]
+  -ek, --escape-key <escape-key>                  Set the escape key used to reach SerialTerm commands, eg. ^A, ^], 0x1D [default: ^A]
+  -lk, --legacy-keys                              Also bind the original F1-F5, Home and ESC keys, ESC will not reach the device [default: False]
+  -nh, --no-hint                                  Do not show the command hint line while the escape key is pending [default: False]
+  -db, --data-bits <5|6|7|8>                      Sets the standard length of data bits per byte [default: 8]
+  -pa, --parity <Even|Mark|None|Odd|Space>        Sets the parity-checking protocol [default: None]
+  -sb, --stop-bits <One|OnePointFive|Two>         Sets the standard number of stopbits per byte [default: One]
+  -hs, --handshake <None|RTS|RTSXonXoff|XonXoff>  Specifies the control protocol used in establishing a serial port communication [default: None]
+  --version                                       Show version information
+  -?, -h, --help                                  Show help and usage information
 
 Commands:
-  list    List all serial ports
+  list  List all serial ports
  ```

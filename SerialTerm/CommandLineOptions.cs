@@ -12,5 +12,8 @@
         public bool resetEsp32 { get; set; }
         public bool dtr { get; set; }
         public bool rts { get; set; }
+        public string escapeKey { get; set; }
+        public bool legacyKeys { get; set; }
+        public bool noHint { get; set; }
     }
 }

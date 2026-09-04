@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.IO.Ports;
 using System.Threading;
 
@@ -142,11 +143,53 @@ namespace TerminalConsole
             Console.WriteLine("{0} Error: {1}", port.PortName, e.EventType.ToString());
         }
 
+        // Device output is passed straight through as bytes. Decoding it as text
+        // first would corrupt anything the device sends outside plain ASCII and
+        // is not needed - the console interprets the escape sequences itself.
         private static void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
         {
             SerialPort port = (SerialPort)sender;
-            string data = port.ReadExisting();
-            Console.Write(data);
+
+            try
+            {
+                int waiting = port.BytesToRead;
+                if (waiting <= 0)
+                    return;
+
+                byte[] buffer = new byte[waiting];
+                int read = port.Read(buffer, 0, waiting);
+                if (read <= 0)
+                    return;
+
+                lock (_consoleLock)
+                {
+                    bool hint = _hintVisible;
+                    if (hint) HideHint();
+
+                    _standardOutput ??= Console.OpenStandardOutput();
+                    _standardOutput.Write(buffer, 0, read);
+                    _standardOutput.Flush();
+
+                    if (hint) ShowHint();
+                }
+            }
+            catch (TimeoutException) { }
+            catch (InvalidOperationException) { }
+            catch (IOException) { }
+        }
+
+        private static void SendToPort(byte[] data)
+        {
+            if (data == null || data.Length == 0 || !_serialPort.IsOpen)
+                return;
+
+            try
+            {
+                _serialPort.Write(data, 0, data.Length);
+            }
+            catch (TimeoutException) { }
+            catch (InvalidOperationException) { }
+            catch (IOException) { }
         }
     }
 }
