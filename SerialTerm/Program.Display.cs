@@ -18,6 +18,7 @@ namespace TerminalConsole
                 new[] { $"{prefix} ?", "Display SerialTerm key help" },
                 new[] { $"{prefix} d", "Disconnect / Reconnect serial connection" },
                 new[] { $"{prefix} i", "Display serial port settings" },
+                new[] { $"{prefix} #", "Change the baud rate without restarting" },
                 new[] { $"{prefix} e", "Soft reset ESP32 by toggling RTS enabled" },
                 new[] { $"{prefix} p", "Reset PICO to programming mode by toggling 1200 baud connection" },
                 new[] { $"{prefix} l", "Start / stop logging the session to a file" },

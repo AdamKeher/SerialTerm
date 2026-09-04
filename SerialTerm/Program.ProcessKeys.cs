@@ -109,6 +109,10 @@ namespace TerminalConsole
                     SendFileCommand();
                     break;
 
+                case '#':
+                    ChangeBaudCommand();
+                    break;
+
                 default:
                     // unknown commands are ignored rather than reported, so a
                     // full screen application on the device is not disturbed

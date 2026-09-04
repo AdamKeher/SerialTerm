@@ -34,6 +34,7 @@ by default: press the escape key, then a command key.
 Ctrl+A ?          Display SerialTerm key help
 Ctrl+A d          Disconnect / Reconnect serial connection
 Ctrl+A i          Display serial port settings
+Ctrl+A #          Change the baud rate without restarting
 Ctrl+A e          Soft reset ESP32 by toggling RTS enabled
 Ctrl+A p          Reset PICO to programming mode by toggling 1200 baud connection
 Ctrl+A l          Start / stop logging the session to a file
@@ -68,6 +69,16 @@ happens.
 ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
+
+## Changing baud rate
+
+`Ctrl+A #` lists the common rates and takes either a number from the list or an
+arbitrary rate. Chasing an unknown rate no longer means quitting and relaunching
+for each guess.
+
+The rate can only be changed on a closed port, so the connection is dropped and
+remade around it. If the driver refuses the rate the previous one is restored
+and the connection comes back.
 
 ## Sending a file
 
