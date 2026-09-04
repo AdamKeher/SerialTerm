@@ -10,12 +10,17 @@ namespace TerminalConsole
         // how long to wait between scans while no COM device is present
         private const int PortScanInterval = 250;
 
+        // returns null when no port was chosen, so the caller can exit quietly
         private static SerialPort GetSerialPort(CommandLineOptions options)
         {
+            string portName = options.port ?? GetPortName();
+            if (portName == null)
+                return null;
+
             // setup serial port
             SerialPort serialPort = new SerialPort()
             {
-                PortName = options.port ?? GetPortName(),
+                PortName = portName,
                 BaudRate = options.baud,
                 DataBits = options.dataBits,
                 Parity = (options.parity.ToLower()) switch
@@ -87,20 +92,22 @@ namespace TerminalConsole
 
                     DisplayPorts();
                     Console.WriteLine();
-                    Console.Write("port number: ");
+                    Console.Write($"port number (1-{ports.Length}, q to quit): ");
 
-                    var key = Console.ReadKey(false);
-                    Console.WriteLine();
+                    string entry = Console.ReadLine()?.Trim();
 
-                    try
+                    // end of input or an explicit quit, the caller gives up
+                    if (entry == null || entry.Equals("q", StringComparison.OrdinalIgnoreCase))
+                        return null;
+
+                    if (!int.TryParse(entry, out int selection))
+                        Console.WriteLine($"'{entry}' is not a number.");
+                    else if (selection < 1 || selection > ports.Length)
+                        Console.WriteLine($"{selection} is out of range, pick a number between 1 and {ports.Length}.");
+                    else
                     {
-                        portIndex = int.Parse(key.KeyChar.ToString()) - 1;
+                        portIndex = selection - 1;
                         Console.WriteLine("Port set to {0}", ports[portIndex]);
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("Error setting port");
-                        portIndex = -1;
                     }
                 }
             } while (portIndex == -1);

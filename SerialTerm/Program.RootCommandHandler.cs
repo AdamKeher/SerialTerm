@@ -17,6 +17,9 @@ namespace TerminalConsole
             _invocationContext = context;
 
             _serialPort = GetSerialPort(options);
+            if (_serialPort == null)
+                return;
+
             _escapeKey = ParseEscapeKey(options.escapeKey);
             _legacyKeys = options.legacyKeys;
             _hintEnabled = !options.noHint;
