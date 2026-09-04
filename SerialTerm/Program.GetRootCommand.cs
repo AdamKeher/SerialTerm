@@ -1,7 +1,7 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.Linq;
+using System.IO.Ports;
 
 namespace TerminalConsole
 {
@@ -70,66 +70,36 @@ namespace TerminalConsole
                 getDefaultValue: () => 8,
                 "Sets the standard length of data bits per byte");
             dbOption.AddCompletions("5", "6", "7", "8");
-            dbOption.AddValidator(optionResult => {
-                var suggestions = optionResult.Option.AddCompletions().Aliases;
-                if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
-                {
-                    Console.WriteLine($"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}");
-                     return;
-                }
-                return ;
+            dbOption.AddValidator(optionResult =>
+            {
+                if (optionResult.Tokens.Count == 0)
+                    return;
+
+                string value = optionResult.Tokens[0].Value;
+                if (!int.TryParse(value, out int dataBits) || dataBits < 5 || dataBits > 8)
+                    optionResult.ErrorMessage = InvalidValueMessage(optionResult, value, new[] { "5", "6", "7", "8" });
             });
             rootCommand.AddOption(dbOption);
 
-            var parityOption = new Option<string>(
+            var parityOption = NamedOption(
                 new string[] { "--parity", "-pa" },
-                getDefaultValue: () => "None",
-                "Sets the parity-checking protocol");
-            parityOption.AddCompletions("None", "Mark", "Even", "Odd", "Space");
-            parityOption.AddValidator(optionResult =>
-            {
-                var suggestions = optionResult.Option.AddCompletions().Aliases;
-                if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
-                {
-                    Console.WriteLine( $"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}");
-                    return ;
-                }
-                return;
-            });
+                "Sets the parity-checking protocol",
+                "None",
+                ParityValues);
             rootCommand.AddOption(parityOption);
 
-            var sbOption = new Option<string>(
+            var sbOption = NamedOption(
                 new string[] { "--stop-bits", "-sb" },
-                getDefaultValue: () => "One",
-                "Sets the standard number of stopbits per byte");
-            sbOption.AddCompletions("One", "OnePointFive", "Two");
-            sbOption.AddValidator(optionResult =>
-            {
-                var suggestions = optionResult.Option.AddCompletions().Aliases;
-                if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
-                {
-                     Console.WriteLine($"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}");
-                     return;
-                }
-                return ;
-            });
+                "Sets the standard number of stopbits per byte",
+                "One",
+                StopBitsValues);
             rootCommand.AddOption(sbOption);
 
-            var hsOption = new Option<string>(
+            var hsOption = NamedOption(
                 new string[] { "--handshake", "-hs" },
-                getDefaultValue: () => "None",
-                "Specifies the control protocol used in establishing a serial port communication");
-            hsOption.AddCompletions("None", "RTS", "XonXoff", "RTSXonXoff");
-            hsOption.AddValidator(optionResult =>
-            {
-                var suggestions = optionResult.Option.AddCompletions().Aliases;
-                if (optionResult.Tokens.Count > 0 && (!suggestions.Any(s => s.Equals(optionResult.Tokens[0].Value.ToLower(), StringComparison.OrdinalIgnoreCase))))
-                {
-                      Console.WriteLine($"{optionResult.Tokens[0].Value} is not a valid argument for {optionResult.Token}");
-                     return;
-                }
-                return;
-            });
+                "Specifies the control protocol used in establishing a serial port communication",
+                "None",
+                HandshakeValues);
             rootCommand.AddOption(hsOption);
 
 
@@ -141,14 +111,14 @@ namespace TerminalConsole
                         disconnectExit = context.ParseResult.GetValueForOption(disconnectExitOpen),
                         dtr = context.ParseResult.GetValueForOption(disableDTROption),
                         escapeKey = context.ParseResult.GetValueForOption(escapeKeyOption),
-                        handshake = context.ParseResult.GetValueForOption(hsOption),
+                        handshake = ValueOf(HandshakeValues, context.ParseResult.GetValueForOption(hsOption), Handshake.None),
                         legacyKeys = context.ParseResult.GetValueForOption(legacyKeysOption),
                         noHint = context.ParseResult.GetValueForOption(noHintOption),
-                        parity = context.ParseResult.GetValueForOption(parityOption),
+                        parity = ValueOf(ParityValues, context.ParseResult.GetValueForOption(parityOption), Parity.None),
                         port = context.ParseResult.GetValueForOption(portOption),
                         resetEsp32 = context.ParseResult.GetValueForOption(resetEsp32Option),
                         rts = context.ParseResult.GetValueForOption(disableRTSOption),
-                        stopBits = context.ParseResult.GetValueForOption(sbOption)
+                        stopBits = ValueOf(StopBitsValues, context.ParseResult.GetValueForOption(sbOption), StopBits.One)
                     };
                     action.Invoke(context, opts);
                 }

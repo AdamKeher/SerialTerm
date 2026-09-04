@@ -23,30 +23,9 @@ namespace TerminalConsole
                 PortName = portName,
                 BaudRate = options.baud,
                 DataBits = options.dataBits,
-                Parity = (options.parity.ToLower()) switch
-                {
-                    "none" => Parity.None,
-                    "even" => Parity.Even,
-                    "mark" => Parity.Mark,
-                    "odd" => Parity.Odd,
-                    "space" => Parity.Space,
-                    _ => Parity.None,
-                },
-                StopBits = (options.stopBits.ToLower()) switch
-                {
-                    "one" => StopBits.One,
-                    "onepointfive" => StopBits.OnePointFive,
-                    "two" => StopBits.Two,
-                    _ => StopBits.One,
-                },
-                Handshake = (options.handshake.ToLower()) switch
-                {
-                    "none" => Handshake.None,
-                    "xonxoff" => Handshake.XOnXOff,
-                    "rts" => Handshake.RequestToSend,
-                    "rtsxonxoff" => Handshake.RequestToSendXOnXOff,
-                    _ => Handshake.None,
-                },
+                Parity = options.parity,
+                StopBits = options.stopBits,
+                Handshake = options.handshake,
                 ReadTimeout = 500,
                 WriteTimeout = 500
             };
