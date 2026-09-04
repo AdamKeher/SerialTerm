@@ -1,4 +1,4 @@
-# SerialTerm
+﻿# SerialTerm
 
 A simple serial terminal for the command line, built for working on electronics.
 
@@ -298,6 +298,20 @@ Echoed bytes go through the same renderer as device output, so they obey
 whichever view is current - in hex view you see what you sent in hex as well,
 interleaved with what came back.
 
+## Character encoding
+
+Device output is written to the console as raw bytes, and the console decides
+what they mean by its output code page. On Windows that defaults to the OEM page
+- 437 or 850 - not UTF-8, so a device reporting `44°C` sends `C2 B0` and the
+console draws those two bytes as two glyphs: `44┬░C`.
+
+SerialTerm switches the console to UTF-8 for the session and puts the previous
+code page back on exit. Nothing about the bytes changes; the console is simply
+told what they are.
+
+For a device that sends its own 8 bit encoding rather than UTF-8 - Latin-1 text,
+or CP437 box drawing - `--no-utf8` leaves the code page alone.
+
 ## Backspace and Enter
 
 Backspace sends DEL (`0x7F`), which is what readline, `nano`, `vi`, BusyBox ash
@@ -363,6 +377,7 @@ Options:
   -rts, --disable-rts                             Disable RTS for serial connection [default: False]
   -ek, --escape-key <escape-key>                  Set the escape key used to reach SerialTerm commands, eg. ^A, ^], 0x1D [default: ^A]
   -lk, --legacy-keys                              Also bind the original F1-F5, Home and ESC keys, ESC will not reach the device [default: False]
+  -nu, --no-utf8                                  Leave the console output code page alone, for a device that sends its own 8 bit encoding rather than UTF-8
   -nh, --no-hint                                  Do not show the command hint line while the escape key is pending [default: False]
   -sl, --status-line                              Reserve the bottom row for a status line. Costs the device one row of screen [default: False]
   -l, --log <log>                                 Append everything the device sends to a file. Ctrl+A l starts and stops it during a session

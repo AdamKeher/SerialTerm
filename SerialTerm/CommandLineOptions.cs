@@ -19,6 +19,7 @@ namespace TerminalConsole
         public bool legacyKeys { get; set; }
         public bool noHint { get; set; }
         public bool statusLine { get; set; }
+        public bool noUtf8 { get; set; }
         public string backspace { get; set; }
         public string newline { get; set; }
         public string log { get; set; }

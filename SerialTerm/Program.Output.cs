@@ -32,7 +32,7 @@ namespace TerminalConsole
             }
         }
 
-        private static void RenderDeviceBytes(byte[] buffer, int count)
+        internal static void RenderDeviceBytes(byte[] buffer, int count)
         {
             lock (_consoleLock)
             {
@@ -54,7 +54,7 @@ namespace TerminalConsole
         // Device output goes to the console as bytes. Decoding it as text first
         // would corrupt anything outside plain ASCII and is not needed - the
         // console interprets the escape sequences itself.
-        private static void WriteRaw(byte[] buffer, int offset, int count)
+        internal static void WriteRaw(byte[] buffer, int offset, int count)
         {
             _standardOutput ??= Console.OpenStandardOutput();
             _standardOutput.Write(buffer, offset, count);

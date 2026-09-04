@@ -79,6 +79,12 @@ namespace TerminalConsole
                     "Do not show the command hint line while the escape key is pending");
             rootCommand.AddOption(noHintOption);
 
+            var noUtf8Option = new Option<bool>(
+                    new string[] { "--no-utf8", "-nu" },
+                    getDefaultValue: () => false,
+                    "Leave the console output code page alone, for a device that sends its own 8 bit encoding rather than UTF-8");
+            rootCommand.AddOption(noUtf8Option);
+
             var statusLineOption = new Option<bool>(
                     new string[] { "--status-line", "-sl" },
                     getDefaultValue: () => false,
@@ -220,6 +226,7 @@ namespace TerminalConsole
                         sendWait = context.ParseResult.GetValueForOption(sendWaitOption),
                         newline = context.ParseResult.GetValueForOption(newlineOption),
                         noHint = context.ParseResult.GetValueForOption(noHintOption),
+                        noUtf8 = context.ParseResult.GetValueForOption(noUtf8Option),
                         parity = ValueOf(ParityValues, context.ParseResult.GetValueForOption(parityOption), Parity.None),
                         port = context.ParseResult.GetValueForOption(portOption),
                         resetEsp32 = context.ParseResult.GetValueForOption(resetEsp32Option),
