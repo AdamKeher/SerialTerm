@@ -17,6 +17,11 @@ namespace TerminalConsole
                 "Set the serial port to listen on");
             rootCommand.AddOption(portOption);
 
+            var matchOption = new Option<string>(
+                    new string[] { "--match", "-M" },
+                    "Pick the port whose name or device description contains this text, eg. --match CP210x");
+            rootCommand.AddOption(matchOption);
+
             var baudOption = new Option<int>(
                     new string[] { "--baud", "-b" },
                     getDefaultValue: () => 115200,
@@ -73,6 +78,12 @@ namespace TerminalConsole
                     getDefaultValue: () => false,
                     "Do not show the command hint line while the escape key is pending");
             rootCommand.AddOption(noHintOption);
+
+            var statusLineOption = new Option<bool>(
+                    new string[] { "--status-line", "-sl" },
+                    getDefaultValue: () => false,
+                    "Reserve the bottom row for a status line. Costs the device one row of screen");
+            rootCommand.AddOption(statusLineOption);
 
             var logOption = new Option<string>(
                     new string[] { "--log", "-l" },
@@ -202,6 +213,7 @@ namespace TerminalConsole
                         localEcho = context.ParseResult.GetValueForOption(localEchoOption),
                         logRaw = context.ParseResult.GetValueForOption(logRawOption),
                         macros = context.ParseResult.GetValueForOption(macroOption),
+                        match = context.ParseResult.GetValueForOption(matchOption),
                         sendDelay = context.ParseResult.GetValueForOption(sendDelayOption),
                         sendFile = context.ParseResult.GetValueForOption(sendFileOption),
                         sendTimeout = context.ParseResult.GetValueForOption(sendTimeoutOption),
@@ -212,6 +224,7 @@ namespace TerminalConsole
                         port = context.ParseResult.GetValueForOption(portOption),
                         resetEsp32 = context.ParseResult.GetValueForOption(resetEsp32Option),
                         rts = context.ParseResult.GetValueForOption(disableRTSOption),
+                        statusLine = context.ParseResult.GetValueForOption(statusLineOption),
                         stopBits = ValueOf(StopBitsValues, context.ParseResult.GetValueForOption(sbOption), StopBits.One),
                         timestamp = context.ParseResult.GetValueForOption(timestampOption)
                     };

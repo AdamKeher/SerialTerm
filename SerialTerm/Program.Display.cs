@@ -18,7 +18,10 @@ namespace TerminalConsole
                 new[] { $"{prefix} ?", "Display SerialTerm key help" },
                 new[] { $"{prefix} d", "Disconnect / Reconnect serial connection" },
                 new[] { $"{prefix} i", "Display serial port settings" },
+                new[] { $"{prefix} #", "Change the baud rate without restarting" },
                 new[] { $"{prefix} e", "Soft reset ESP32 by toggling RTS enabled" },
+                new[] { $"{prefix} B", "Put an ESP32 into download mode, IO0 held low across reset" },
+                new[] { $"{prefix} t", "Show and toggle the DTR and RTS lines" },
                 new[] { $"{prefix} p", "Reset PICO to programming mode by toggling 1200 baud connection" },
                 new[] { $"{prefix} l", "Start / stop logging the session to a file" },
                 new[] { $"{prefix} v", "Toggle hex view of incoming bytes" },
@@ -61,9 +64,9 @@ namespace TerminalConsole
 
         // Probing asks each port whether it opens, which reboots anything wired
         // for auto reset. It is opt in for that reason.
-        private static void DisplayPorts(bool probe = false)
+        private static void DisplayPorts(bool probe = false, string[] only = null)
         {
-            string[] portnames = SerialPort.GetPortNames();
+            string[] portnames = only ?? SerialPort.GetPortNames();
 
             if (portnames.Length == 0)
             {

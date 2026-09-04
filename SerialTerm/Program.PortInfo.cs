@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Versioning;
+using System.IO.Ports;
 using Microsoft.Win32;
 
 namespace TerminalConsole
@@ -14,6 +15,39 @@ namespace TerminalConsole
         // the point, because opening a port to see whether it answers asserts
         // DTR and RTS and reboots whatever is plugged into it.
         private const string DeviceTree = @"SYSTEM\CurrentControlSet\Enum";
+
+        private static string[] MatchingPorts(string match)
+        {
+            string[] ports = SerialPort.GetPortNames();
+
+            if (string.IsNullOrEmpty(match))
+                return ports;
+
+            var descriptions = GetPortDescriptions();
+            var matched = new List<string>();
+
+            foreach (string port in ports)
+            {
+                descriptions.TryGetValue(port, out string description);
+
+                if (Contains(port, match) || Contains(description, match))
+                    matched.Add(port);
+            }
+
+            return matched.ToArray();
+        }
+
+        private static bool Contains(string value, string match)
+        {
+            return value != null && value.Contains(match, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string DescriptionOf(string port)
+        {
+            return GetPortDescriptions().TryGetValue(port, out string description)
+                ? $"({description})"
+                : string.Empty;
+        }
 
         private static Dictionary<string, string> GetPortDescriptions()
         {

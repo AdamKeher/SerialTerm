@@ -5,6 +5,7 @@ namespace TerminalConsole
     public class CommandLineOptions
     {
         public string port { get; set; }
+        public string match { get; set; }
         public int baud { get; set; }
         public int dataBits { get; set; }
         public Parity parity { get; set; }
@@ -17,6 +18,7 @@ namespace TerminalConsole
         public string escapeKey { get; set; }
         public bool legacyKeys { get; set; }
         public bool noHint { get; set; }
+        public bool statusLine { get; set; }
         public string backspace { get; set; }
         public string newline { get; set; }
         public string log { get; set; }

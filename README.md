@@ -34,7 +34,10 @@ by default: press the escape key, then a command key.
 Ctrl+A ?          Display SerialTerm key help
 Ctrl+A d          Disconnect / Reconnect serial connection
 Ctrl+A i          Display serial port settings
+Ctrl+A #          Change the baud rate without restarting
 Ctrl+A e          Soft reset ESP32 by toggling RTS enabled
+Ctrl+A B          Put an ESP32 into download mode, IO0 held low across reset
+Ctrl+A t          Show and toggle the DTR and RTS lines
 Ctrl+A p          Reset PICO to programming mode by toggling 1200 baud connection
 Ctrl+A l          Start / stop logging the session to a file
 Ctrl+A v          Toggle hex view of incoming bytes
@@ -68,6 +71,52 @@ happens.
 ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
+
+## Status line
+
+`--status-line` reserves the bottom row for the connection state, so
+"Disconnected." and "Reconnected." stop scrolling away into the device's own
+output:
+
+```
+ COM3 115200 8N1  connected  DTR on  RTS off  LOG  HEX              Ctrl+A ?
+```
+
+It shows the port, baud, framing, connection state, both control lines, and
+whichever of logging, hex view, freeze, local echo and timestamps are on.
+
+The row is reserved with a DECSTBM scroll region, so device output scrolls above
+it and can never overwrite it. That is also why it is off by default: the device
+gets one row fewer than the window has, and a full screen program on the device
+that draws to the last row will get it wrong.
+
+While the status line is on, the escape key hint shares the same row instead of
+saving and restoring what was underneath.
+
+## DTR, RTS and ESP32 download mode
+
+`Ctrl+A t` shows both control lines and lets either be flipped by hand, for
+bringing up a board whose reset circuit is not the usual one.
+
+`Ctrl+A B` puts an ESP32 into its ROM downloader. Note the capital: `Ctrl+A b`
+sends a break, `Ctrl+A B` enters download mode. They are different operations
+and the case distinguishes them.
+
+`Ctrl+A e` and `Ctrl+A B` are also different from each other. The usual dev
+board circuit puts DTR on IO0 and RTS on EN through a transistor pair. `Ctrl+A e`
+toggles RTS alone, which resets the chip into its normal firmware. Entering the
+downloader means holding IO0 low across the reset, so both lines have to move
+together - which is what esptool does before flashing.
+
+## Changing baud rate
+
+`Ctrl+A #` lists the common rates and takes either a number from the list or an
+arbitrary rate. Chasing an unknown rate no longer means quitting and relaunching
+for each guess.
+
+The rate can only be changed on a closed port, so the connection is dropped and
+remade around it. If the driver refuses the rate the previous one is restored
+and the connection comes back.
 
 ## Sending a file
 
@@ -187,6 +236,7 @@ Usage:
 
 Options:
   -P, --port <port>                               Set the serial port to listen on
+  -M, --match <match>                             Pick the port whose name or device description contains this text, eg. --match CP210x
   -b, --baud <baud>                               Set serial port baud rate [default: 115200]
   -de, --disconnect-exit                          Exit terminal on disconnection [default: False]
   -r, --reset-esp32                               Reset ESP32 on connection [default: False]
@@ -194,6 +244,7 @@ Options:
   -rts, --disable-rts                             Disable RTS for serial connection [default: False]
   -ek, --escape-key <escape-key>                  Set the escape key used to reach SerialTerm commands, eg. ^A, ^], 0x1D [default: ^A]
   -lk, --legacy-keys                              Also bind the original F1-F5, Home and ESC keys, ESC will not reach the device [default: False]
+  -sl, --status-line                              Reserve the bottom row for a status line. Costs the device one row of screen [default: False]
   -nh, --no-hint                                  Do not show the command hint line while the escape key is pending [default: False]
   -bs, --backspace <bs|del>                       Byte sent by the Backspace key, del is 0x7F and bs is 0x08 [default: del]
   -nl, --newline <cr|crlf|lf>                     Bytes sent by the Enter key [default: cr]
@@ -216,6 +267,23 @@ Options:
 Commands:
   list  List all serial ports
  ```
+
+### Picking a port
+
+COM numbers shuffle between reboots and hubs; what is plugged in does not.
+`--match` selects the port whose name or device description contains the text:
+
+```
+SerialTerm --match CP210x
+SerialTerm --match 10C4:EA60
+SerialTerm --match COM7
+```
+
+If nothing matches yet it waits for the device to appear, so the command can be
+run before the board is plugged in. If several match it lists them and asks.
+
+`-P auto` asks for the same automatic selection as leaving `--port` off, which
+is worth being able to say explicitly in a script.
 
 ### list
 

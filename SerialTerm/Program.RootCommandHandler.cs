@@ -81,6 +81,9 @@ namespace TerminalConsole
             EnableControlCPassthrough();
             EnableVirtualTerminal();
 
+            _statusEnabled = options.statusLine;
+            EnableStatusLine();
+
             try
             {
                 // after the console is set up, so the device's echo of the
@@ -92,6 +95,7 @@ namespace TerminalConsole
             }
             finally
             {
+                DisableStatusLine();
                 RestoreConsoleMode();
                 RestoreControlC();
                 CloseLog();
@@ -145,7 +149,10 @@ namespace TerminalConsole
                 if (KeyAvailable())
                     paused = ProcessKeys(paused);
                 else
+                {
+                    RefreshStatusLine();
                     Thread.Sleep(PollInterval);
+                }
             }
 
             return ExitOk;

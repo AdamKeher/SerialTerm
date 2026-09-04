@@ -13,7 +13,12 @@ namespace TerminalConsole
         // returns null when no port was chosen, so the caller can exit quietly
         private static SerialPort GetSerialPort(CommandLineOptions options)
         {
-            string portName = options.port ?? GetPortName();
+            // -P auto asks for the same selection as leaving --port off, which
+            // is worth being able to say explicitly in a script
+            bool automatic = options.port == null
+                || options.port.Equals("auto", StringComparison.OrdinalIgnoreCase);
+
+            string portName = automatic ? GetPortName(options.match) : options.port;
             if (portName == null)
                 return null;
 
@@ -38,7 +43,10 @@ namespace TerminalConsole
             return serialPort;
         }
 
-        private static string GetPortName()
+        // COM numbers shuffle between reboots and hubs; what is plugged in does
+        // not. `match` is compared against the port name and the device
+        // description, so --match CP210x finds the board wherever it landed.
+        private static string GetPortName(string match)
         {
             int portIndex = -1;
             bool waiting = false;
@@ -46,11 +54,14 @@ namespace TerminalConsole
 
             do
             {
-                ports = SerialPort.GetPortNames();
+                ports = MatchingPorts(match);
 
                 if (ports.Length == 0)
                 {
-                    if (!waiting) SayLine("Waiting for COM device.");
+                    if (!waiting)
+                        SayLine(match == null
+                            ? "Waiting for COM device."
+                            : $"Waiting for a COM device matching '{match}'.");
                     waiting = true;
 
                     // enumerating ports hits the registry, so pause between
@@ -63,13 +74,15 @@ namespace TerminalConsole
                 if (ports.Length == 1)
                 {
                     portIndex = 0;
-                    SayLine($"Port defaulted to {ports[portIndex]}");
+                    SayLine(match == null
+                        ? $"Port defaulted to {ports[portIndex]}"
+                        : $"Port matched '{match}': {ports[portIndex]} {DescriptionOf(ports[portIndex])}");
                 }
                 else
                 {
-                    SayLine("Select a port:");
+                    SayLine(match == null ? "Select a port:" : $"Several ports match '{match}':");
 
-                    DisplayPorts();
+                    DisplayPorts(false, ports);
                     SayLine();
                     Say($"port number (1-{ports.Length}, q to quit): ");
 

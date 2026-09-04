@@ -53,6 +53,14 @@ namespace TerminalConsole
             if (key.KeyChar >= '1' && key.KeyChar <= '9' && RunMacro(key.KeyChar))
                 return paused;
 
+            // checked before the switch below lowercases, so B is the ESP32
+            // downloader and b stays the break
+            if (key.KeyChar == 'B')
+            {
+                Esp32BootloaderCommand();
+                return paused;
+            }
+
             switch (char.ToLowerInvariant(key.KeyChar))
             {
                 case '?':
@@ -107,6 +115,14 @@ namespace TerminalConsole
 
                 case 's':
                     SendFileCommand();
+                    break;
+
+                case '#':
+                    ChangeBaudCommand();
+                    break;
+
+                case 't':
+                    LineControlCommand();
                     break;
 
                 default:
