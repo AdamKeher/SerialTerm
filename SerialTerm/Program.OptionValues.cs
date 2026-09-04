@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Parsing;
@@ -35,6 +35,20 @@ namespace TerminalConsole
             ["RTS"] = Handshake.RequestToSend,
             ["RTSXonXoff"] = Handshake.RequestToSendXOnXOff,
             ["XonXoff"] = Handshake.XOnXOff,
+        };
+
+        // Values are only ever looked up by name, so a set is enough
+        private static readonly Dictionary<string, string> BackspaceValues = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["del"] = "del",
+            ["bs"] = "bs",
+        };
+
+        private static readonly Dictionary<string, string> NewlineValues = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["cr"] = "cr",
+            ["lf"] = "lf",
+            ["crlf"] = "crlf",
         };
 
         // An option whose value has to be one of a fixed set of names. Rejecting

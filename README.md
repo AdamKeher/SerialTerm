@@ -51,6 +51,15 @@ Use `--escape-key` to move it somewhere else, for example `--escape-key ^]` for
 the telnet escape character. `--legacy-keys` additionally restores the original
 F1 - F5, Home and ESC shortcuts, but with it ESC no longer reaches the device.
 
+## Backspace and Enter
+
+Backspace sends DEL (`0x7F`), which is what readline, `nano`, `vi`, BusyBox ash
+and the MicroPython REPL expect. Devices that want the older BS (`0x08`) instead
+take `--backspace bs`.
+
+Enter sends CR (`0x0D`). Use `--newline lf` or `--newline crlf` for devices that
+want a line feed.
+
 ## Syntax
 ```
 Description:
@@ -69,6 +78,8 @@ Options:
   -ek, --escape-key <escape-key>                  Set the escape key used to reach SerialTerm commands, eg. ^A, ^], 0x1D [default: ^A]
   -lk, --legacy-keys                              Also bind the original F1-F5, Home and ESC keys, ESC will not reach the device [default: False]
   -nh, --no-hint                                  Do not show the command hint line while the escape key is pending [default: False]
+  -bs, --backspace <bs|del>                       Byte sent by the Backspace key, del is 0x7F and bs is 0x08 [default: del]
+  -nl, --newline <cr|crlf|lf>                     Bytes sent by the Enter key [default: cr]
   -db, --data-bits <5|6|7|8>                      Sets the standard length of data bits per byte [default: 8]
   -pa, --parity <Even|Mark|None|Odd|Space>        Sets the parity-checking protocol [default: None]
   -sb, --stop-bits <One|OnePointFive|Two>         Sets the standard number of stopbits per byte [default: One]

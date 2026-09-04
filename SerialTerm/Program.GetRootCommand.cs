@@ -74,6 +74,20 @@ namespace TerminalConsole
                     "Do not show the command hint line while the escape key is pending");
             rootCommand.AddOption(noHintOption);
 
+            var backspaceOption = NamedOption(
+                new string[] { "--backspace", "-bs" },
+                "Byte sent by the Backspace key, del is 0x7F and bs is 0x08",
+                "del",
+                BackspaceValues);
+            rootCommand.AddOption(backspaceOption);
+
+            var newlineOption = NamedOption(
+                new string[] { "--newline", "-nl" },
+                "Bytes sent by the Enter key",
+                "cr",
+                NewlineValues);
+            rootCommand.AddOption(newlineOption);
+
             var dbOption = new Option<int>(
                 new string[] { "--data-bits", "-db" },
                 getDefaultValue: () => 8,
@@ -115,6 +129,7 @@ namespace TerminalConsole
             rootCommand.SetHandler((context)=>
                 {
                     var opts = new CommandLineOptions(){
+                        backspace = context.ParseResult.GetValueForOption(backspaceOption),
                         baud = context.ParseResult.GetValueForOption(baudOption),
                         dataBits = context.ParseResult.GetValueForOption(dbOption),
                         disconnectExit = context.ParseResult.GetValueForOption(disconnectExitOpen),
@@ -122,6 +137,7 @@ namespace TerminalConsole
                         escapeKey = context.ParseResult.GetValueForOption(escapeKeyOption),
                         handshake = ValueOf(HandshakeValues, context.ParseResult.GetValueForOption(hsOption), Handshake.None),
                         legacyKeys = context.ParseResult.GetValueForOption(legacyKeysOption),
+                        newline = context.ParseResult.GetValueForOption(newlineOption),
                         noHint = context.ParseResult.GetValueForOption(noHintOption),
                         parity = ValueOf(ParityValues, context.ParseResult.GetValueForOption(parityOption), Parity.None),
                         port = context.ParseResult.GetValueForOption(portOption),

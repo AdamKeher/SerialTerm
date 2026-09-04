@@ -6,6 +6,32 @@ namespace TerminalConsole
     partial class Program
     {
         private const byte Escape = 0x1B;
+        private const byte Backspace = 0x08;
+        private const byte Delete = 0x7F;
+        private const byte CarriageReturn = 0x0D;
+        private const byte LineFeed = 0x0A;
+
+        // What Backspace and Enter put on the wire. Windows hands us 0x08 for
+        // Backspace, but readline, nano, vi, BusyBox ash and the MicroPython
+        // REPL all expect 0x7F and treat 0x08 as plain cursor-left - so the
+        // key appears to move the cursor and delete nothing. DEL is the
+        // default, matching PuTTY and every Unix terminal.
+        private static byte[] _backspaceBytes = { Delete };
+        private static byte[] _newlineBytes = { CarriageReturn };
+
+        private static void SetLineDiscipline(string backspace, string newline)
+        {
+            _backspaceBytes = backspace.Equals("bs", StringComparison.OrdinalIgnoreCase)
+                ? new[] { Backspace }
+                : new[] { Delete };
+
+            _newlineBytes = newline.ToLowerInvariant() switch
+            {
+                "lf" => new[] { LineFeed },
+                "crlf" => new[] { CarriageReturn, LineFeed },
+                _ => new[] { CarriageReturn },
+            };
+        }
 
         // Keys that carry no character of their own (arrows, navigation and
         // function keys) are translated into the sequence a real terminal would
@@ -48,6 +74,11 @@ namespace TerminalConsole
                 case ConsoleKey.Tab when (key.Modifiers & ConsoleModifiers.Shift) != 0:
                     return Sequence("[Z");
 
+                // both carry a KeyChar, but which byte it should be is the
+                // user's to choose rather than whatever Windows hands us
+                case ConsoleKey.Backspace: return WithMeta(_backspaceBytes, key);
+                case ConsoleKey.Enter: return WithMeta(_newlineBytes, key);
+
                 default:
                     break;
             }
@@ -57,12 +88,15 @@ namespace TerminalConsole
             if (key.KeyChar == '\0')
                 return Array.Empty<byte>();
 
-            byte[] character = Encoding.UTF8.GetBytes(key.KeyChar.ToString());
+            return WithMeta(Encoding.UTF8.GetBytes(key.KeyChar.ToString()), key);
+        }
 
+        // Alt is sent as a leading escape, the usual meta convention
+        private static byte[] WithMeta(byte[] character, ConsoleKeyInfo key)
+        {
             if ((key.Modifiers & ConsoleModifiers.Alt) == 0)
                 return character;
 
-            // Alt is sent as a leading escape, the usual meta convention
             byte[] meta = new byte[character.Length + 1];
             meta[0] = Escape;
             Array.Copy(character, 0, meta, 1, character.Length);

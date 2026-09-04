@@ -36,6 +36,7 @@ namespace TerminalConsole
             _escapeKey = ParseEscapeKey(options.escapeKey);
             _legacyKeys = options.legacyKeys;
             _hintEnabled = !options.noHint;
+            SetLineDiscipline(options.backspace, options.newline);
 
             // open serial port
             SayLine($"Connecting to: {SerialPortToString()}");

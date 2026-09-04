@@ -17,5 +17,7 @@ namespace TerminalConsole
         public string escapeKey { get; set; }
         public bool legacyKeys { get; set; }
         public bool noHint { get; set; }
+        public string backspace { get; set; }
+        public string newline { get; set; }
     }
 }
