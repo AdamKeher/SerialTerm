@@ -36,6 +36,8 @@ Ctrl+A d          Disconnect / Reconnect serial connection
 Ctrl+A i          Display serial port settings
 Ctrl+A #          Change the baud rate without restarting
 Ctrl+A e          Soft reset ESP32 by toggling RTS enabled
+Ctrl+A B          Put an ESP32 into download mode, IO0 held low across reset
+Ctrl+A t          Show and toggle the DTR and RTS lines
 Ctrl+A p          Reset PICO to programming mode by toggling 1200 baud connection
 Ctrl+A l          Start / stop logging the session to a file
 Ctrl+A v          Toggle hex view of incoming bytes
@@ -69,6 +71,21 @@ happens.
 ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
+
+## DTR, RTS and ESP32 download mode
+
+`Ctrl+A t` shows both control lines and lets either be flipped by hand, for
+bringing up a board whose reset circuit is not the usual one.
+
+`Ctrl+A B` puts an ESP32 into its ROM downloader. Note the capital: `Ctrl+A b`
+sends a break, `Ctrl+A B` enters download mode. They are different operations
+and the case distinguishes them.
+
+`Ctrl+A e` and `Ctrl+A B` are also different from each other. The usual dev
+board circuit puts DTR on IO0 and RTS on EN through a transistor pair. `Ctrl+A e`
+toggles RTS alone, which resets the chip into its normal firmware. Entering the
+downloader means holding IO0 low across the reset, so both lines have to move
+together - which is what esptool does before flashing.
 
 ## Changing baud rate
 
