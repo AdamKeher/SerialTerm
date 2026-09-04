@@ -17,6 +17,11 @@ namespace TerminalConsole
                 "Set the serial port to listen on");
             rootCommand.AddOption(portOption);
 
+            var matchOption = new Option<string>(
+                    new string[] { "--match", "-M" },
+                    "Pick the port whose name or device description contains this text, eg. --match CP210x");
+            rootCommand.AddOption(matchOption);
+
             var baudOption = new Option<int>(
                     new string[] { "--baud", "-b" },
                     getDefaultValue: () => 115200,
@@ -202,6 +207,7 @@ namespace TerminalConsole
                         localEcho = context.ParseResult.GetValueForOption(localEchoOption),
                         logRaw = context.ParseResult.GetValueForOption(logRawOption),
                         macros = context.ParseResult.GetValueForOption(macroOption),
+                        match = context.ParseResult.GetValueForOption(matchOption),
                         sendDelay = context.ParseResult.GetValueForOption(sendDelayOption),
                         sendFile = context.ParseResult.GetValueForOption(sendFileOption),
                         sendTimeout = context.ParseResult.GetValueForOption(sendTimeoutOption),

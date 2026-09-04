@@ -187,6 +187,7 @@ Usage:
 
 Options:
   -P, --port <port>                               Set the serial port to listen on
+  -M, --match <match>                             Pick the port whose name or device description contains this text, eg. --match CP210x
   -b, --baud <baud>                               Set serial port baud rate [default: 115200]
   -de, --disconnect-exit                          Exit terminal on disconnection [default: False]
   -r, --reset-esp32                               Reset ESP32 on connection [default: False]
@@ -216,6 +217,23 @@ Options:
 Commands:
   list  List all serial ports
  ```
+
+### Picking a port
+
+COM numbers shuffle between reboots and hubs; what is plugged in does not.
+`--match` selects the port whose name or device description contains the text:
+
+```
+SerialTerm --match CP210x
+SerialTerm --match 10C4:EA60
+SerialTerm --match COM7
+```
+
+If nothing matches yet it waits for the device to appear, so the command can be
+run before the board is plugged in. If several match it lists them and asks.
+
+`-P auto` asks for the same automatic selection as leaving `--port` off, which
+is worth being able to say explicitly in a script.
 
 ### list
 

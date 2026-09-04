@@ -5,6 +5,7 @@ namespace TerminalConsole
     public class CommandLineOptions
     {
         public string port { get; set; }
+        public string match { get; set; }
         public int baud { get; set; }
         public int dataBits { get; set; }
         public Parity parity { get; set; }

@@ -61,9 +61,9 @@ namespace TerminalConsole
 
         // Probing asks each port whether it opens, which reboots anything wired
         // for auto reset. It is opt in for that reason.
-        private static void DisplayPorts(bool probe = false)
+        private static void DisplayPorts(bool probe = false, string[] only = null)
         {
-            string[] portnames = SerialPort.GetPortNames();
+            string[] portnames = only ?? SerialPort.GetPortNames();
 
             if (portnames.Length == 0)
             {
