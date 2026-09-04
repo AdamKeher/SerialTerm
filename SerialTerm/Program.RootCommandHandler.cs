@@ -16,7 +16,20 @@ namespace TerminalConsole
         {
             _invocationContext = context;
 
-            _serialPort = GetSerialPort(options);
+            // The SerialPort property setters range check and throw. The options
+            // are validated during parsing, so reaching this catch means a
+            // combination we did not anticipate - report it in one line rather
+            // than letting a stack trace out.
+            try
+            {
+                _serialPort = GetSerialPort(options);
+            }
+            catch (ArgumentException e)
+            {
+                Console.WriteLine($"Invalid serial port settings: {e.Message}");
+                return;
+            }
+
             if (_serialPort == null)
                 return;
 

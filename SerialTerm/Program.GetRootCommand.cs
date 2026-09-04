@@ -21,6 +21,15 @@ namespace TerminalConsole
                     new string[] { "--baud", "-b" },
                     getDefaultValue: () => 115200,
                     "Set serial port baud rate");
+            baudOption.AddValidator(optionResult =>
+            {
+                if (optionResult.Tokens.Count == 0)
+                    return;
+
+                string value = optionResult.Tokens[0].Value;
+                if (!int.TryParse(value, out int baud) || baud <= 0)
+                    optionResult.ErrorMessage = $"'{value}' is not a valid baud rate, it must be a positive number.";
+            });
             rootCommand.AddOption(baudOption);
 
             var disconnectExitOpen = new Option<bool>(
