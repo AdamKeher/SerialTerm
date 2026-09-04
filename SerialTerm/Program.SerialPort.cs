@@ -7,6 +7,9 @@ namespace TerminalConsole
 {
     partial class Program
     {
+        // how long to wait between scans while no COM device is present
+        private const int PortScanInterval = 250;
+
         private static SerialPort GetSerialPort(CommandLineOptions options)
         {
             // setup serial port
@@ -65,8 +68,15 @@ namespace TerminalConsole
                 {
                     if (!waiting) Console.WriteLine("Waiting for COM device.");
                     waiting = true;
+
+                    // enumerating ports hits the registry, so pause between
+                    // scans rather than spinning a core while the user goes
+                    // looking for a cable
+                    Thread.Sleep(PortScanInterval);
+                    continue;
                 }
-                else if (ports.Length == 1)
+
+                if (ports.Length == 1)
                 {
                     portIndex = 0;
                     Console.WriteLine("Port defaulted to {0}", ports[portIndex]);
