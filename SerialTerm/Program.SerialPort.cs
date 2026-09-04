@@ -7,38 +7,25 @@ namespace TerminalConsole
 {
     partial class Program
     {
+        // how long to wait between scans while no COM device is present
+        private const int PortScanInterval = 250;
+
+        // returns null when no port was chosen, so the caller can exit quietly
         private static SerialPort GetSerialPort(CommandLineOptions options)
         {
+            string portName = options.port ?? GetPortName();
+            if (portName == null)
+                return null;
+
             // setup serial port
             SerialPort serialPort = new SerialPort()
             {
-                PortName = options.port ?? GetPortName(),
+                PortName = portName,
                 BaudRate = options.baud,
                 DataBits = options.dataBits,
-                Parity = (options.parity.ToLower()) switch
-                {
-                    "none" => Parity.None,
-                    "even" => Parity.Even,
-                    "mark" => Parity.Mark,
-                    "odd" => Parity.Odd,
-                    "space" => Parity.Space,
-                    _ => Parity.None,
-                },
-                StopBits = (options.stopBits.ToLower()) switch
-                {
-                    "one" => StopBits.One,
-                    "onepointfive" => StopBits.OnePointFive,
-                    "two" => StopBits.Two,
-                    _ => StopBits.One,
-                },
-                Handshake = (options.handshake.ToLower()) switch
-                {
-                    "none" => Handshake.None,
-                    "xonxoff" => Handshake.XOnXOff,
-                    "rts" => Handshake.RequestToSend,
-                    "rtsxonxoff" => Handshake.RequestToSendXOnXOff,
-                    _ => Handshake.None,
-                },
+                Parity = options.parity,
+                StopBits = options.stopBits,
+                Handshake = options.handshake,
                 ReadTimeout = 500,
                 WriteTimeout = 500
             };
@@ -63,34 +50,43 @@ namespace TerminalConsole
 
                 if (ports.Length == 0)
                 {
-                    if (!waiting) Console.WriteLine("Waiting for COM device.");
+                    if (!waiting) SayLine("Waiting for COM device.");
                     waiting = true;
+
+                    // enumerating ports hits the registry, so pause between
+                    // scans rather than spinning a core while the user goes
+                    // looking for a cable
+                    Thread.Sleep(PortScanInterval);
+                    continue;
                 }
-                else if (ports.Length == 1)
+
+                if (ports.Length == 1)
                 {
                     portIndex = 0;
-                    Console.WriteLine("Port defaulted to {0}", ports[portIndex]);
+                    SayLine($"Port defaulted to {ports[portIndex]}");
                 }
                 else
                 {
-                    Console.WriteLine("Select a port:");
+                    SayLine("Select a port:");
 
                     DisplayPorts();
-                    Console.WriteLine();
-                    Console.Write("port number: ");
+                    SayLine();
+                    Say($"port number (1-{ports.Length}, q to quit): ");
 
-                    var key = Console.ReadKey(false);
-                    Console.WriteLine();
+                    string entry = Console.ReadLine()?.Trim();
 
-                    try
+                    // end of input or an explicit quit, the caller gives up
+                    if (entry == null || entry.Equals("q", StringComparison.OrdinalIgnoreCase))
+                        return null;
+
+                    if (!int.TryParse(entry, out int selection))
+                        SayLine($"'{entry}' is not a number.");
+                    else if (selection < 1 || selection > ports.Length)
+                        SayLine($"{selection} is out of range, pick a number between 1 and {ports.Length}.");
+                    else
                     {
-                        portIndex = int.Parse(key.KeyChar.ToString()) - 1;
-                        Console.WriteLine("Port set to {0}", ports[portIndex]);
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("Error setting port");
-                        portIndex = -1;
+                        portIndex = selection - 1;
+                        SayLine($"Port set to {ports[portIndex]}");
                     }
                 }
             } while (portIndex == -1);
@@ -98,8 +94,20 @@ namespace TerminalConsole
             return ports[portIndex];
         }
 
+        // With RTS handshaking the hardware drives the line, and SerialPort
+        // refuses to let RtsEnable be read or written at all once the port is
+        // open - it throws InvalidOperationException rather than returning
+        // anything. Anything touching RTS has to ask first.
+        private static bool HandshakeOwnsRts()
+        {
+            return _serialPort.Handshake == Handshake.RequestToSend
+                || _serialPort.Handshake == Handshake.RequestToSendXOnXOff;
+        }
+
         private static string SerialPortToString()
         {
+            string rts = HandshakeOwnsRts() ? "handshake" : _serialPort.RtsEnable.ToString();
+
             return String.Format("'{0}' (B:{1} | P:{2} | DB: {3} | SB:{4} | HS: {5} | DTR {6} | RTS {7}) ",
                 _serialPort.PortName,
                 _serialPort.BaudRate,
@@ -108,14 +116,27 @@ namespace TerminalConsole
                 _serialPort.StopBits.ToString(),
                 _serialPort.Handshake.ToString(),
                 _serialPort.DtrEnable,
-                _serialPort.RtsEnable);
+                rts);
         }
 
-        private static void ResetEsp32(int duration)
+        private static bool ResetEsp32(int duration)
         {
+            if (HandshakeOwnsRts())
+            {
+                SayLine($"\r\nCannot toggle RTS while --handshake is set to {_serialPort.Handshake}.");
+                return false;
+            }
+
+            if (!_serialPort.IsOpen)
+            {
+                SayLine("\r\nNot connected.");
+                return false;
+            }
+
             _serialPort.RtsEnable = true;
             Thread.Sleep(duration);
             _serialPort.RtsEnable = false;
+            return true;
         }
 
         private static void PicoProgrammingMode()
@@ -130,7 +151,7 @@ namespace TerminalConsole
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: Unable to open / find port ... ");
+                SayLine($"Error: unable to open {_serialPort.PortName} at 1200 baud: {e.Message}");
             }
             _serialPort.Close();
             _serialPort.BaudRate = oldbaud;
@@ -140,7 +161,7 @@ namespace TerminalConsole
         private static void ErrorReceivedHandler(object sender, SerialErrorReceivedEventArgs e)
         {
             SerialPort port = (SerialPort)sender;
-            Console.WriteLine("{0} Error: {1}", port.PortName, e.EventType.ToString());
+            SayLine($"{port.PortName} Error: {e.EventType}");
         }
 
         // Device output is passed straight through as bytes. Decoding it as text

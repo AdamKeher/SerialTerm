@@ -7,13 +7,11 @@ namespace TerminalConsole
 {
     partial class Program
     {
-        static void ListCommmandHandler(InvocationContext context)
+        static void ListCommmandHandler(bool probe)
         {
-            _invocationContext = context;
-
-            Console.WriteLine("Serial Ports");
-            Console.WriteLine("------------");
-            DisplayPorts();
+            SayLine("Serial Ports");
+            SayLine("------------");
+            DisplayPorts(probe);
         }
     }
 }

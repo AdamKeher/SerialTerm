@@ -63,7 +63,7 @@ namespace TerminalConsole
                     break;
 
                 case 'c':
-                    Console.Clear();
+                    ClearScreen();
                     break;
 
                 case 'd':
@@ -71,7 +71,7 @@ namespace TerminalConsole
                     break;
 
                 case 'i':
-                    Console.WriteLine($"\r\nConnected to: {SerialPortToString()}");
+                    SayLine($"\r\nConnected to: {SerialPortToString()}");
                     break;
 
                 case 'e':
@@ -98,7 +98,7 @@ namespace TerminalConsole
             switch (key.Key)
             {
                 case ConsoleKey.Home:
-                    Console.Clear();
+                    ClearScreen();
                     return true;
 
                 case ConsoleKey.Escape:
@@ -114,7 +114,7 @@ namespace TerminalConsole
                     return true;
 
                 case ConsoleKey.F3:
-                    Console.WriteLine($"\r\nConnected to: {SerialPortToString()}");
+                    SayLine($"\r\nConnected to: {SerialPortToString()}");
                     return true;
 
                 case ConsoleKey.F4:
@@ -136,27 +136,27 @@ namespace TerminalConsole
 
             if (paused)
             {
-                Console.Write("\r\nDisconnected ... ");
+                Say("\r\nDisconnected ... ");
                 _serialPort.Close();
             }
             else
-                Console.Write("\r\nReconnecting ... ");
+                Say("\r\nReconnecting ... ");
 
             return paused;
         }
 
         private static void ResetEsp32Command()
         {
-            Console.Write($"\r\nESP32 Soft Reset. Toggling RTS ... ");
+            Say($"\r\nESP32 Soft Reset. Toggling RTS ... ");
             ResetEsp32(100);
-            Console.WriteLine($"Done ...");
+            SayLine($"Done ...");
         }
 
         private static bool PicoProgrammingCommand()
         {
-            Console.WriteLine($"\r\nPi PICO Programming mode. Connecting 1200 baud ... ");
+            SayLine($"\r\nPi PICO Programming mode. Connecting 1200 baud ... ");
             PicoProgrammingMode();
-            Console.Write("Disconnected ... ");
+            Say("Disconnected ... ");
             return true;
         }
 
@@ -181,7 +181,7 @@ namespace TerminalConsole
             if (value.Length == 1)
                 return ControlKey(value[0]);
 
-            Console.WriteLine($"'{value}' is not a valid escape key, defaulting to Ctrl+A");
+            SayLine($"'{value}' is not a valid escape key, defaulting to Ctrl+A");
             return DefaultEscapeKey;
         }
 

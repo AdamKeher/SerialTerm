@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.CommandLine.Rendering;
-using System.CommandLine.Rendering.Views;
-using System.Linq;
 using System.IO.Ports;
 
 namespace TerminalConsole
@@ -11,107 +8,101 @@ namespace TerminalConsole
     {
         private static void DisplayHelp()
         {
-            Console.WriteLine("\r\nTerminal Keys");
-            Console.WriteLine("-------------");
-
-            var consoleRenderer = new ConsoleRenderer(
-                _invocationContext.Console,
-                _invocationContext.BindingContext.OutputMode(),
-                true);
+            SayLine("\r\nTerminal Keys");
+            SayLine("-------------");
 
             var prefix = EscapeKeyName();
 
-            var helpList = new List<dynamic>();
-            helpList.Add(new { Key = $"{prefix} ?", Function = "Display SerialTerm key help" });
-            helpList.Add(new { Key = $"{prefix} d", Function = "Disconnect / Reconnect serial connection" });
-            helpList.Add(new { Key = $"{prefix} i", Function = "Display serial port settings" });
-            helpList.Add(new { Key = $"{prefix} e", Function = "Soft reset ESP32 by toggling RTS enabled" });
-            helpList.Add(new { Key = $"{prefix} p", Function = "Reset PICO to programming mode by toggling 1200 baud connection" });
-            helpList.Add(new { Key = $"{prefix} c", Function = "Clear terminal screen" });
-            helpList.Add(new { Key = $"{prefix} q", Function = "Exit terminal program" });
-            helpList.Add(new { Key = $"{prefix} {prefix}", Function = $"Send a literal {prefix} to the connected device" });
+            var rows = new List<string[]>
+            {
+                new[] { $"{prefix} ?", "Display SerialTerm key help" },
+                new[] { $"{prefix} d", "Disconnect / Reconnect serial connection" },
+                new[] { $"{prefix} i", "Display serial port settings" },
+                new[] { $"{prefix} e", "Soft reset ESP32 by toggling RTS enabled" },
+                new[] { $"{prefix} p", "Reset PICO to programming mode by toggling 1200 baud connection" },
+                new[] { $"{prefix} c", "Clear terminal screen" },
+                new[] { $"{prefix} q", "Exit terminal program" },
+                new[] { $"{prefix} {prefix}", $"Send a literal {prefix} to the connected device" },
+            };
 
             if (_legacyKeys)
             {
-                helpList.Add(new { Key = "F1", Function = "Display SerialTerm key help" });
-                helpList.Add(new { Key = "F2", Function = "Disconnect / Reconnect serial connection" });
-                helpList.Add(new { Key = "F3", Function = "Display serial port settings" });
-                helpList.Add(new { Key = "F4", Function = "Soft reset ESP32 by toggling RTS enabled" });
-                helpList.Add(new { Key = "F5", Function = "Reset PICO to programming mode by toggling 1200 baud connection" });
-                helpList.Add(new { Key = "Home", Function = "Clear terminal screen" });
-                helpList.Add(new { Key = "ESC", Function = "Exit terminal program" });
+                rows.Add(new[] { "F1", "Display SerialTerm key help" });
+                rows.Add(new[] { "F2", "Disconnect / Reconnect serial connection" });
+                rows.Add(new[] { "F3", "Display serial port settings" });
+                rows.Add(new[] { "F4", "Soft reset ESP32 by toggling RTS enabled" });
+                rows.Add(new[] { "F5", "Reset PICO to programming mode by toggling 1200 baud connection" });
+                rows.Add(new[] { "Home", "Clear terminal screen" });
+                rows.Add(new[] { "ESC", "Exit terminal program" });
             }
 
-            var tableView = new TableView<dynamic>
+            SayBlock(() =>
             {
-                Items = helpList.ToList()
-            };
+                WriteTable(new[] { "Key", "Function" }, rows);
 
-            tableView.AddColumn(f => f.Key, "Key");
-            tableView.AddColumn(f => f.Function, "Function");
+                SayLine();
+                SayLine(_legacyKeys
+                    ? "Every other key is sent to the connected device. ESC and F1-F5 are held by SerialTerm."
+                    : "Every other key, ESC and Ctrl+C included, is sent to the connected device.");
 
-            Region region = new Region(0, 0, new Size(Console.WindowWidth, Console.BufferHeight));
-            tableView.Render(consoleRenderer, region);
-            Console.WriteLine();
-            Console.WriteLine(_legacyKeys
-                ? "Every other key is sent to the connected device. ESC and F1-F5 are held by SerialTerm."
-                : "Every other key, ESC and Ctrl+C included, is sent to the connected device.");
-
-            Console.WriteLine();
+                SayLine();
+            });
         }
 
-        private static void DisplayPorts()
+        // Probing asks each port whether it opens, which reboots anything wired
+        // for auto reset. It is opt in for that reason.
+        private static void DisplayPorts(bool probe = false)
         {
-            var consoleRenderer = new ConsoleRenderer(
-                _invocationContext.Console,
-                _invocationContext.BindingContext.OutputMode(),
-                true);
-
             string[] portnames = SerialPort.GetPortNames();
 
             if (portnames.Length == 0)
             {
-                Console.WriteLine("No serial ports detected.");
+                SayLine("No serial ports detected.");
                 return;
             }
 
-            List<dynamic> serialList = new List<dynamic>();
+            Dictionary<string, string> descriptions = GetPortDescriptions();
 
-            int count = 0;
-            foreach (var port in portnames)
+            var headers = new List<string> { "#", "Port", "Device" };
+            if (probe)
+                headers.Add("Status");
+
+            var rows = new List<string[]>();
+
+            for (int index = 0; index < portnames.Length; index++)
             {
-                _serialPort = new SerialPort();
-                _serialPort.PortName = portnames[count];
+                string port = portnames[index];
 
-                bool serialStatus = false;
-
-                try
+                var row = new List<string>
                 {
-                    _serialPort.Open();
-                    _serialPort.Close();
-                }
-                catch (Exception)
-                {
-                    serialStatus = true;
-                }
+                    (index + 1).ToString(),
+                    port,
+                    descriptions.TryGetValue(port, out string description) ? description : "-"
+                };
 
-                var serialObject = new { Count = count + 1, Port = portnames[count], Status = !serialStatus ? "(free)" : "(busy)" };
-                serialList.Add(serialObject);
+                if (probe)
+                    row.Add(IsPortFree(port) ? "(free)" : "(busy)");
 
-                count++;
+                rows.Add(row.ToArray());
             }
 
-            var tableView = new TableView<dynamic>
+            WriteTable(headers, rows);
+        }
+
+        private static bool IsPortFree(string portName)
+        {
+            using var port = new SerialPort(portName);
+
+            try
             {
-                Items = serialList.ToList()
-            };
-
-            tableView.AddColumn(f => f.Count, "#");
-            tableView.AddColumn(f => f.Port, "Port");
-            tableView.AddColumn(f => f.Status, "Status");
-
-            Region region = new Region(0, 0, new Size(Console.WindowWidth, Console.BufferHeight));
-            tableView.Render(consoleRenderer, region);
+                port.Open();
+                port.Close();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

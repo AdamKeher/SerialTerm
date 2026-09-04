@@ -14,16 +14,37 @@ namespace TerminalConsole
 
         static void RootCommmandHandler(InvocationContext context, CommandLineOptions options)
         {
-            _invocationContext = context;
+            DetectConsole();
 
-            _serialPort = GetSerialPort(options);
+            // The SerialPort property setters range check and throw. The options
+            // are validated during parsing, so reaching this catch means a
+            // combination we did not anticipate - report it in one line rather
+            // than letting a stack trace out.
+            try
+            {
+                _serialPort = GetSerialPort(options);
+            }
+            catch (ArgumentException e)
+            {
+                SayLine($"Invalid serial port settings: {e.Message}");
+                context.ExitCode = ExitBadSettings;
+                return;
+            }
+
+            if (_serialPort == null)
+            {
+                context.ExitCode = ExitNoPort;
+                return;
+            }
+
             _escapeKey = ParseEscapeKey(options.escapeKey);
             _legacyKeys = options.legacyKeys;
             _hintEnabled = !options.noHint;
+            SetLineDiscipline(options.backspace, options.newline);
 
             // open serial port
-            Console.WriteLine("Connecting to: {0}", SerialPortToString());
-            Console.WriteLine("Press {0} ? for the list of terminal keys", EscapeKeyName());
+            SayLine($"Connecting to: {SerialPortToString()}");
+            SayLine($"Press {EscapeKeyName()} ? for the list of terminal keys");
 
             // set when the user has already been told the port is not available,
             // so the retry loop does not repeat itself
@@ -32,39 +53,46 @@ namespace TerminalConsole
             try
             {
                 _serialPort.Open();
-                if (options.resetEsp32)
-                    ResetEsp32(100);
             }
             catch (UnauthorizedAccessException)
             {
-                Console.WriteLine(PortInUseMessage());
+                SayLine(PortInUseMessage());
                 reported = true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Console.WriteLine($"Failed to open {_serialPort.PortName}");
+                SayLine($"Failed to open {_serialPort.PortName}: {e.Message}");
                 reported = true;
             }
+
+            // outside the open, so a reset that fails cannot be reported as the
+            // port having failed to open
+            if (_serialPort.IsOpen && options.resetEsp32)
+                ResetEsp32(100);
 
             // Ctrl+C belongs to the connected device rather than to SerialTerm, and
             // the console has to be asked to interpret the escape sequences a
             // device sends before a full screen application can draw with them
-            Console.TreatControlCAsInput = true;
+            EnableControlCPassthrough();
             EnableVirtualTerminal();
 
             try
             {
-                TerminalLoop(options, reported);
+                context.ExitCode = TerminalLoop(options, reported);
             }
             finally
             {
                 RestoreConsoleMode();
-                Console.TreatControlCAsInput = false;
+                RestoreControlC();
+
+                // hand the port back before exiting, so a flash tool started
+                // straight afterwards does not race us for it
+                _serialPort.Dispose();
             }
         }
 
         // wait while receiving data and handle disconnection and control keys
-        private static void TerminalLoop(CommandLineOptions options, bool reported)
+        private static int TerminalLoop(CommandLineOptions options, bool reported)
         {
             bool paused = false;
             DateTime lastConnectAttempt = DateTime.MinValue;
@@ -81,14 +109,14 @@ namespace TerminalConsole
                     try
                     {
                         _serialPort.Open();
-                        if (reported) Console.WriteLine("Reconnected.");
+                        if (reported) SayLine("Reconnected.");
                         reported = false;
                     }
                     catch (System.IO.FileNotFoundException)
                     {
-                        if (!reported) Console.WriteLine("Disconnected.");
+                        if (!reported) SayLine("Disconnected.");
                         if (options.disconnectExit)
-                            return;
+                            return ExitDisconnected;
                         reported = true;
                     }
                     catch (UnauthorizedAccessException)
@@ -96,18 +124,20 @@ namespace TerminalConsole
                         // the port is there but another program holds it open, so
                         // keep waiting rather than failing - it is released again
                         // when that program exits
-                        if (!reported) Console.WriteLine(PortInUseMessage());
+                        if (!reported) SayLine(PortInUseMessage());
                         reported = true;
                     }
                     catch (System.IO.IOException) { }
                 }
 
                 // control keys
-                if (Console.KeyAvailable)
+                if (KeyAvailable())
                     paused = ProcessKeys(paused);
                 else
                     Thread.Sleep(PollInterval);
             }
+
+            return ExitOk;
         }
 
         private static string PortInUseMessage()

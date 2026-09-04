@@ -11,7 +11,6 @@ namespace TerminalConsole
     {
         static SerialPort _serialPort;
         static bool _continue;
-        private static InvocationContext _invocationContext;
         static readonly object _consoleLock = new object();
         static Stream _standardOutput;
 
@@ -25,12 +24,16 @@ namespace TerminalConsole
 
             // create list ports command
             var listCommand = new Command("list", "List all serial ports");
-            listCommand.SetHandler(ListCommmandHandler);
+            var probeOption = new Option<bool>(
+                new string[] { "--probe", "-p" },
+                getDefaultValue: () => false,
+                "Also report whether each port is free, by opening it. This resets devices wired for auto reset");
+            listCommand.AddOption(probeOption);
+            listCommand.SetHandler(ListCommmandHandler, probeOption);
             rootCommand.Add(listCommand);
             
             // Parse the incoming args and invoke the handler
-            var result = rootCommand.InvokeAsync(args).Result;
-            return result;
+            return rootCommand.Invoke(args);
         }
     }
 }
