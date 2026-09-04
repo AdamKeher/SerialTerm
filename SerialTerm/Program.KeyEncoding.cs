@@ -16,10 +16,10 @@ namespace TerminalConsole
         // REPL all expect 0x7F and treat 0x08 as plain cursor-left - so the
         // key appears to move the cursor and delete nothing. DEL is the
         // default, matching PuTTY and every Unix terminal.
-        private static byte[] _backspaceBytes = { Delete };
-        private static byte[] _newlineBytes = { CarriageReturn };
+        internal static byte[] _backspaceBytes = { Delete };
+        internal static byte[] _newlineBytes = { CarriageReturn };
 
-        private static void SetLineDiscipline(string backspace, string newline)
+        internal static void SetLineDiscipline(string backspace, string newline)
         {
             _backspaceBytes = backspace.Equals("bs", StringComparison.OrdinalIgnoreCase)
                 ? new[] { Backspace }
@@ -37,7 +37,7 @@ namespace TerminalConsole
         // function keys) are translated into the sequence a real terminal would
         // send, so full screen applications on the device - vi, nano, htop -
         // receive the key that was actually pressed instead of a null byte.
-        private static byte[] EncodeKey(ConsoleKeyInfo key)
+        internal static byte[] EncodeKey(ConsoleKeyInfo key)
         {
             int modifier = 1
                 + ((key.Modifiers & ConsoleModifiers.Shift) != 0 ? 1 : 0)
@@ -92,7 +92,7 @@ namespace TerminalConsole
         }
 
         // Alt is sent as a leading escape, the usual meta convention
-        private static byte[] WithMeta(byte[] character, ConsoleKeyInfo key)
+        internal static byte[] WithMeta(byte[] character, ConsoleKeyInfo key)
         {
             if ((key.Modifiers & ConsoleModifiers.Alt) == 0)
                 return character;
@@ -104,7 +104,7 @@ namespace TerminalConsole
         }
 
         // ESC [ A .. ESC [ D, ESC [ H, ESC [ F -- with ESC [ 1 ; modifier X when held
-        private static byte[] CursorKey(char final, int modifier)
+        internal static byte[] CursorKey(char final, int modifier)
         {
             return modifier == 1
                 ? Sequence($"[{final}")
@@ -112,7 +112,7 @@ namespace TerminalConsole
         }
 
         // ESC O P .. ESC O S for F1 - F4, the vt100 style application keys
-        private static byte[] FunctionKey(char final, int modifier)
+        internal static byte[] FunctionKey(char final, int modifier)
         {
             return modifier == 1
                 ? Sequence($"O{final}")
@@ -120,14 +120,14 @@ namespace TerminalConsole
         }
 
         // ESC [ n ~ for the editing and higher function keys
-        private static byte[] EditingKey(int number, int modifier)
+        internal static byte[] EditingKey(int number, int modifier)
         {
             return modifier == 1
                 ? Sequence($"[{number}~")
                 : Sequence($"[{number};{modifier}~");
         }
 
-        private static byte[] Sequence(string body)
+        internal static byte[] Sequence(string body)
         {
             byte[] bytes = new byte[body.Length + 1];
             bytes[0] = Escape;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -65,7 +65,7 @@ namespace TerminalConsole
         // A macro is nearly always a command plus a carriage return, so the
         // usual escapes are understood rather than requiring the shell to
         // produce control characters.
-        private static byte[] Unescape(string text)
+        internal static byte[] Unescape(string text)
         {
             var bytes = new List<byte>(text.Length);
 

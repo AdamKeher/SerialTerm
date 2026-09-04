@@ -9,10 +9,10 @@ namespace TerminalConsole
 {
     partial class Program
     {
-        static SerialPort _serialPort;
+        internal static SerialPort _serialPort;
         static bool _continue;
         static readonly object _consoleLock = new object();
-        static Stream _standardOutput;
+        internal static Stream _standardOutput;
 
         public static int Main(string[] args)
         {

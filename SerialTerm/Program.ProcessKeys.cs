@@ -11,7 +11,7 @@ namespace TerminalConsole
         // keep ESC, the function keys, the arrows and Ctrl+C. SerialTerm's own
         // commands sit behind an escape (prefix) key: press the prefix, then a
         // command key. Pressing the prefix twice sends it on to the device.
-        private static char _escapeKey = DefaultEscapeKey;
+        internal static char _escapeKey = DefaultEscapeKey;
         private static bool _escapePending;
         private static bool _legacyKeys;
 
@@ -204,7 +204,7 @@ namespace TerminalConsole
         }
 
         // Accepts a control key as '^A', 'Ctrl+A', '0x01' or a bare 'A'
-        private static char ParseEscapeKey(string value)
+        internal static char ParseEscapeKey(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
                 return DefaultEscapeKey;
@@ -228,12 +228,12 @@ namespace TerminalConsole
             return DefaultEscapeKey;
         }
 
-        private static char ControlKey(char key)
+        internal static char ControlKey(char key)
         {
             return (char)(char.ToUpperInvariant(key) & 0x1F);
         }
 
-        private static string EscapeKeyName()
+        internal static string EscapeKeyName()
         {
             return _escapeKey < 0x20
                 ? $"Ctrl+{(char)(_escapeKey | 0x40)}"

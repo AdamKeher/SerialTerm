@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.IO.Ports;
 using System.Text;
@@ -16,8 +16,8 @@ namespace TerminalConsole
         // fewer than the window has, which a full screen program drawing to the
         // last row will get wrong - hence opt in.
         private static bool _statusEnabled;
-        private static int _statusRows;
-        private static int _statusColumns;
+        internal static int _statusRows;
+        internal static int _statusColumns;
         private static DateTime _statusChecked = DateTime.MinValue;
 
         private const int StatusResizeInterval = 500;
@@ -98,7 +98,7 @@ namespace TerminalConsole
                 PaintBottomLine(StatusText(_statusColumns));
         }
 
-        private static void PaintBottomLine(string text)
+        internal static void PaintBottomLine(string text)
         {
             if (_statusRows <= 0)
                 return;
@@ -114,7 +114,7 @@ namespace TerminalConsole
             }
         }
 
-        private static string StatusText(int width)
+        internal static string StatusText(int width)
         {
             var status = new StringBuilder(" ");
 
@@ -143,7 +143,7 @@ namespace TerminalConsole
             return text;
         }
 
-        private static string Framing()
+        internal static string Framing()
         {
             char parity = _serialPort.Parity switch
             {
