@@ -43,6 +43,7 @@ namespace TerminalConsole
             SetLineDiscipline(options.backspace, options.newline);
             _localEcho = options.localEcho;
             ConfigureMacros(options.macros);
+            ConfigureSend(options);
             ConfigureTimestamps(options.timestamp);
             ConfigureLog(options);
 
@@ -82,6 +83,11 @@ namespace TerminalConsole
 
             try
             {
+                // after the console is set up, so the device's echo of the
+                // upload is interpreted rather than printed as escape codes
+                if (_serialPort.IsOpen && _sendPath != null)
+                    SendFile(_sendPath);
+
                 context.ExitCode = TerminalLoop(options, reported);
             }
             finally

@@ -40,6 +40,7 @@ Ctrl+A l          Start / stop logging the session to a file
 Ctrl+A v          Toggle hex view of incoming bytes
 Ctrl+A f          Freeze / resume the screen, output keeps being captured
 Ctrl+A b          Send a break to the device
+Ctrl+A s          Send a text file to the device line by line
 Ctrl+A 1-9        Send a macro defined with --macro
 Ctrl+A o          Toggle local echo of what you type
 Ctrl+A c          Clear terminal screen
@@ -67,6 +68,29 @@ happens.
 ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
+
+## Sending a file
+
+`Ctrl+A s` prompts for a path and sends it line by line; `--send-file` sends one
+straight after connecting. This is how a MicroPython or CircuitPython script
+gets onto a board over the REPL, and how a config script gets replayed.
+
+Lines go out with whatever `--newline` is set to. Press the escape key during a
+send to stop part way.
+
+A device with no flow control and a small receive buffer will drop lines if you
+push them as fast as the port allows. Two ways to pace it:
+
+```
+SerialTerm -P COM3 --send-file setup.py --send-delay 20
+SerialTerm -P COM3 --send-file setup.py --send-wait ">>> "
+```
+
+`--send-delay` waits a fixed number of milliseconds between lines, which is
+crude but needs to know nothing about the device. `--send-wait` waits for the
+device's prompt to come back before sending the next line, which is the reliable
+version - it gives up after `--send-timeout` milliseconds, 2000 by default, and
+says which line it stopped on.
 
 ## Macros
 
@@ -175,6 +199,10 @@ Options:
   -nl, --newline <cr|crlf|lf>                     Bytes sent by the Enter key [default: cr]
   -l, --log <log>                                 Append everything the device sends to a file. Ctrl+A l starts and stops it during a session
   -lr, --log-raw                                  Keep ANSI escape sequences in the log instead of stripping them [default: False]
+  -sf, --send-file <send-file>                    Send a text file to the device line by line after connecting. Ctrl+A s sends one during a session
+  -sd, --send-delay <send-delay>                  Milliseconds to pause between lines when sending a file [default: 0]
+  -sw, --send-wait <send-wait>                    Wait for this text from the device after each line, eg. the REPL prompt
+  -st, --send-timeout <send-timeout>              How long to wait for --send-wait before giving up, in milliseconds [default: 2000]
   -m, --macro <macro>                             Bind text to Ctrl+A 1 through Ctrl+A 9, eg. --macro 1=reboot\r. Repeatable
   -le, --local-echo                               Show what you type. For devices that do not echo it back themselves [default: False]
   -ts, --timestamp <abs|off|rel>                  Prefix each line from the device with a time, abs is the clock and rel is seconds since connecting [default: off]

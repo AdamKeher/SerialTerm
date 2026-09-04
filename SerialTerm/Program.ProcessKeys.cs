@@ -105,6 +105,10 @@ namespace TerminalConsole
                     ToggleLocalEcho();
                     break;
 
+                case 's':
+                    SendFileCommand();
+                    break;
+
                 default:
                     // unknown commands are ignored rather than reported, so a
                     // full screen application on the device is not disturbed

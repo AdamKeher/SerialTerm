@@ -18,6 +18,7 @@ namespace TerminalConsole
                 // the log records what the device sent, whatever the console
                 // is currently doing with it
                 LogBytes(buffer, count);
+                NoteReceived(buffer, count);
 
                 // frozen only stops the painting - the bytes are kept and
                 // replayed on resume, so nothing is lost
