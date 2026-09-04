@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 
 namespace TerminalConsole
@@ -93,8 +93,7 @@ namespace TerminalConsole
             {
                 if (_logRaw)
                 {
-                    _logStream.Write(buffer, 0, count);
-                    _logBytes += count;
+                    WriteToLog(buffer, 0, count);
                 }
                 else
                 {
@@ -102,10 +101,7 @@ namespace TerminalConsole
                     int length = StripAnsi(buffer, count, filtered);
 
                     if (length > 0)
-                    {
-                        _logStream.Write(filtered, 0, length);
-                        _logBytes += length;
-                    }
+                        WriteToLog(filtered, 0, length);
                 }
 
                 _logStream.Flush();
@@ -114,6 +110,19 @@ namespace TerminalConsole
             {
                 CloseLog();
                 SayLine($"\r\nLogging stopped: {e.Message}");
+            }
+        }
+
+        private static void WriteToLog(byte[] buffer, int offset, int count)
+        {
+            if (TimestampsEnabled)
+                WriteTimestamped(buffer, count, ref _logAtLineStart,
+                    (b, o, c) => { _logStream.Write(b, o, c); _logBytes += c; },
+                    text => { byte[] stamp = Ascii(text); _logStream.Write(stamp, 0, stamp.Length); });
+            else
+            {
+                _logStream.Write(buffer, offset, count);
+                _logBytes += count;
             }
         }
 

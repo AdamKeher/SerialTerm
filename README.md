@@ -63,6 +63,23 @@ ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
 
+## Timestamps
+
+`--timestamp rel` prefixes each line from the device with seconds since
+connecting, `--timestamp abs` with the wall clock:
+
+```
+[     0.000] boot: ESP-IDF v5.1
+[     2.310] wifi: connected
+[    14.882] E (14882) watchdog: task not resetting
+```
+
+This is how you find out the watchdog fires 14.9 s after boot. Timestamps go to
+the log as well as the screen.
+
+They assume line oriented output. A full screen program on the device draws with
+cursor positioning rather than lines, so leave timestamps off while running one.
+
 ## Backspace and Enter
 
 Backspace sends DEL (`0x7F`), which is what readline, `nano`, `vi`, BusyBox ash
@@ -94,6 +111,7 @@ Options:
   -nl, --newline <cr|crlf|lf>                     Bytes sent by the Enter key [default: cr]
   -l, --log <log>                                 Append everything the device sends to a file. Ctrl+A l starts and stops it during a session
   -lr, --log-raw                                  Keep ANSI escape sequences in the log instead of stripping them [default: False]
+  -ts, --timestamp <abs|off|rel>                  Prefix each line from the device with a time, abs is the clock and rel is seconds since connecting [default: off]
   -db, --data-bits <5|6|7|8>                      Sets the standard length of data bits per byte [default: 8]
   -pa, --parity <Even|Mark|None|Odd|Space>        Sets the parity-checking protocol [default: None]
   -sb, --stop-bits <One|OnePointFive|Two>         Sets the standard number of stopbits per byte [default: One]

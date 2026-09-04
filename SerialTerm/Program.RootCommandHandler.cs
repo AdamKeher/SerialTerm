@@ -41,6 +41,7 @@ namespace TerminalConsole
             _legacyKeys = options.legacyKeys;
             _hintEnabled = !options.noHint;
             SetLineDiscipline(options.backspace, options.newline);
+            ConfigureTimestamps(options.timestamp);
             ConfigureLog(options);
 
             // open serial port

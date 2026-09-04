@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace TerminalConsole
 {
@@ -22,7 +22,11 @@ namespace TerminalConsole
                 bool hint = _hintVisible;
                 if (hint) HideHint();
 
-                WriteRaw(buffer, 0, count);
+                if (TimestampsEnabled)
+                    WriteTimestamped(buffer, count, ref _consoleAtLineStart,
+                        WriteRaw, text => WriteRaw(Ascii(text), 0, text.Length));
+                else
+                    WriteRaw(buffer, 0, count);
 
                 if (hint) ShowHint();
             }

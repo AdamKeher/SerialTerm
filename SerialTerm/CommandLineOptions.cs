@@ -21,5 +21,6 @@ namespace TerminalConsole
         public string newline { get; set; }
         public string log { get; set; }
         public bool logRaw { get; set; }
+        public string timestamp { get; set; }
     }
 }

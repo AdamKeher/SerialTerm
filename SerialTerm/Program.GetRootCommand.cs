@@ -85,6 +85,13 @@ namespace TerminalConsole
                     "Keep ANSI escape sequences in the log instead of stripping them");
             rootCommand.AddOption(logRawOption);
 
+            var timestampOption = NamedOption(
+                new string[] { "--timestamp", "-ts" },
+                "Prefix each line from the device with a time, abs is the clock and rel is seconds since connecting",
+                "off",
+                TimestampValues);
+            rootCommand.AddOption(timestampOption);
+
             var backspaceOption = NamedOption(
                 new string[] { "--backspace", "-bs" },
                 "Byte sent by the Backspace key, del is 0x7F and bs is 0x08",
@@ -156,7 +163,8 @@ namespace TerminalConsole
                         port = context.ParseResult.GetValueForOption(portOption),
                         resetEsp32 = context.ParseResult.GetValueForOption(resetEsp32Option),
                         rts = context.ParseResult.GetValueForOption(disableRTSOption),
-                        stopBits = ValueOf(StopBitsValues, context.ParseResult.GetValueForOption(sbOption), StopBits.One)
+                        stopBits = ValueOf(StopBitsValues, context.ParseResult.GetValueForOption(sbOption), StopBits.One),
+                        timestamp = context.ParseResult.GetValueForOption(timestampOption)
                     };
                     action.Invoke(context, opts);
                 }
