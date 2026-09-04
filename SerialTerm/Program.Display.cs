@@ -21,6 +21,7 @@ namespace TerminalConsole
                 new[] { $"{prefix} e", "Soft reset ESP32 by toggling RTS enabled" },
                 new[] { $"{prefix} p", "Reset PICO to programming mode by toggling 1200 baud connection" },
                 new[] { $"{prefix} l", "Start / stop logging the session to a file" },
+                new[] { $"{prefix} v", "Toggle hex view of incoming bytes" },
                 new[] { $"{prefix} c", "Clear terminal screen" },
                 new[] { $"{prefix} q", "Exit terminal program" },
                 new[] { $"{prefix} {prefix}", $"Send a literal {prefix} to the connected device" },

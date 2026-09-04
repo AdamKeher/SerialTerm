@@ -37,6 +37,7 @@ Ctrl+A i          Display serial port settings
 Ctrl+A e          Soft reset ESP32 by toggling RTS enabled
 Ctrl+A p          Reset PICO to programming mode by toggling 1200 baud connection
 Ctrl+A l          Start / stop logging the session to a file
+Ctrl+A v          Toggle hex view of incoming bytes
 Ctrl+A c          Clear terminal screen
 Ctrl+A q          Exit terminal program
 Ctrl+A Ctrl+A     Send a literal Ctrl+A to the connected device
@@ -62,6 +63,23 @@ happens.
 ANSI escape sequences are stripped so the log stays readable and greppable;
 `--log-raw` keeps them. The file is opened in append mode, so stopping and
 restarting during a session adds to it rather than truncating.
+
+## Hex view
+
+`Ctrl+A v` switches the incoming stream to an offset / hex / ASCII dump:
+
+```
+00000000  01 03 00 00 00 02 c4 0b                          |........|
+00000008  01 03 04 00 0a 00 14 da  31                      |........1|
+00000011  64 6f 6e 65 0d 0a                                |done..|
+```
+
+Each read from the port ends its line, so the boundaries between bursts stay
+visible - which for a framed protocol is usually where the frame boundaries are.
+Offsets run from when the view was switched on.
+
+It is `Ctrl+A v` rather than the more obvious `Ctrl+A x` because `x` already
+quits.
 
 ## Timestamps
 

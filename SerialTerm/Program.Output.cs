@@ -22,7 +22,9 @@ namespace TerminalConsole
                 bool hint = _hintVisible;
                 if (hint) HideHint();
 
-                if (TimestampsEnabled)
+                if (_hexView)
+                    RenderHex(buffer, count);
+                else if (TimestampsEnabled)
                     WriteTimestamped(buffer, count, ref _consoleAtLineStart,
                         WriteRaw, text => WriteRaw(Ascii(text), 0, text.Length));
                 else
