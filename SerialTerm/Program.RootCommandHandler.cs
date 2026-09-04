@@ -81,6 +81,9 @@ namespace TerminalConsole
             EnableControlCPassthrough();
             EnableVirtualTerminal();
 
+            _utf8Output = !options.noUtf8;
+            EnableUtf8Output();
+
             _statusEnabled = options.statusLine;
             EnableStatusLine();
 
@@ -97,6 +100,7 @@ namespace TerminalConsole
             {
                 DisableStatusLine();
                 RestoreConsoleMode();
+                RestoreOutputEncoding();
                 RestoreControlC();
                 CloseLog();
 

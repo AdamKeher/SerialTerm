@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace TerminalConsole
 {
@@ -56,6 +58,61 @@ namespace TerminalConsole
             }
             catch (DllNotFoundException) { }
             catch (EntryPointNotFoundException) { }
+        }
+
+        private static Encoding _originalOutputEncoding;
+        private static bool _outputEncodingChanged;
+        private static bool _utf8Output = true;
+
+        // Device bytes are written to the console untouched, which is right -
+        // decoding them first would corrupt anything outside plain ASCII. But
+        // the console decides what those bytes mean by its output code page,
+        // and on Windows that defaults to the OEM page: 437 or 850, not UTF-8.
+        //
+        // A device sending "44°C" puts C2 B0 on the wire, and CP437 renders
+        // those two bytes as two glyphs, so the degree sign arrives as "44┬░C".
+        // Telling the console the stream is UTF-8 is the whole fix; the bytes
+        // were always right.
+        private static void EnableUtf8Output()
+        {
+            if (!_utf8Output || Console.IsOutputRedirected)
+                return;
+
+            try
+            {
+                _originalOutputEncoding = Console.OutputEncoding;
+
+                // no BOM, or every session would open by writing one
+                Console.OutputEncoding = new UTF8Encoding(false);
+                _outputEncodingChanged = true;
+            }
+            catch (Exception e) when (e is IOException || e is ArgumentException
+                                   || e is PlatformNotSupportedException || e is NotSupportedException)
+            {
+                // a console that will not take UTF-8 still works, it just shows
+                // the mojibake this was meant to fix
+            }
+        }
+
+        private static void RestoreOutputEncoding()
+        {
+            if (!_outputEncodingChanged)
+                return;
+
+            try
+            {
+                Console.OutputEncoding = _originalOutputEncoding;
+            }
+            catch (Exception e) when (e is IOException || e is ArgumentException
+                                   || e is PlatformNotSupportedException || e is NotSupportedException)
+            {
+                // leaving the console in UTF-8 is survivable, throwing on the
+                // way out is not
+            }
+            finally
+            {
+                _outputEncodingChanged = false;
+            }
         }
     }
 }
