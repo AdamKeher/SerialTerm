@@ -27,11 +27,15 @@ namespace TerminalConsole
             catch (ArgumentException e)
             {
                 SayLine($"Invalid serial port settings: {e.Message}");
+                context.ExitCode = ExitBadSettings;
                 return;
             }
 
             if (_serialPort == null)
+            {
+                context.ExitCode = ExitNoPort;
                 return;
+            }
 
             _escapeKey = ParseEscapeKey(options.escapeKey);
             _legacyKeys = options.legacyKeys;
@@ -74,17 +78,21 @@ namespace TerminalConsole
 
             try
             {
-                TerminalLoop(options, reported);
+                context.ExitCode = TerminalLoop(options, reported);
             }
             finally
             {
                 RestoreConsoleMode();
                 RestoreControlC();
+
+                // hand the port back before exiting, so a flash tool started
+                // straight afterwards does not race us for it
+                _serialPort.Dispose();
             }
         }
 
         // wait while receiving data and handle disconnection and control keys
-        private static void TerminalLoop(CommandLineOptions options, bool reported)
+        private static int TerminalLoop(CommandLineOptions options, bool reported)
         {
             bool paused = false;
             DateTime lastConnectAttempt = DateTime.MinValue;
@@ -108,7 +116,7 @@ namespace TerminalConsole
                     {
                         if (!reported) SayLine("Disconnected.");
                         if (options.disconnectExit)
-                            return;
+                            return ExitDisconnected;
                         reported = true;
                     }
                     catch (UnauthorizedAccessException)
@@ -128,6 +136,8 @@ namespace TerminalConsole
                 else
                     Thread.Sleep(PollInterval);
             }
+
+            return ExitOk;
         }
 
         private static string PortInUseMessage()

@@ -151,7 +151,7 @@ namespace TerminalConsole
             }
             catch (Exception e)
             {
-                SayLine("Error: Unable to open / find port ... ");
+                SayLine($"Error: unable to open {_serialPort.PortName} at 1200 baud: {e.Message}");
             }
             _serialPort.Close();
             _serialPort.BaudRate = oldbaud;

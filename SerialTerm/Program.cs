@@ -33,8 +33,7 @@ namespace TerminalConsole
             rootCommand.Add(listCommand);
             
             // Parse the incoming args and invoke the handler
-            var result = rootCommand.InvokeAsync(args).Result;
-            return result;
+            return rootCommand.Invoke(args);
         }
     }
 }

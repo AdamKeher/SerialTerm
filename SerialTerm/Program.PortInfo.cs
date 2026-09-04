@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 using Microsoft.Win32;
 
 namespace TerminalConsole
@@ -59,6 +60,7 @@ namespace TerminalConsole
             return descriptions;
         }
 
+        [SupportedOSPlatform("windows")]
         private static void AddDescription(Dictionary<string, string> descriptions, RegistryKey instance, string deviceName)
         {
             using RegistryKey parameters = OpenSubKey(instance, "Device Parameters");
@@ -100,6 +102,7 @@ namespace TerminalConsole
             return $"{deviceName.Substring(vid + 4, 4)}:{deviceName.Substring(pid + 4, 4)}";
         }
 
+        [SupportedOSPlatform("windows")]
         private static RegistryKey OpenSubKey(RegistryKey parent, string name)
         {
             try
