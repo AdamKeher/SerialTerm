@@ -3,7 +3,7 @@ A simple serial listener program for Windows Terminal command line replacement
 
 Get a precompiled single file version 0.2.0 @ https://github.com/AdamKeher/SerialTerm/releases
 
-SerialTerm needs the .NET 6 runtime @ https://dotnet.microsoft.com/download/dotnet/6.0
+The single file builds are self contained and need no runtime installed.
 
 Get windows terminal @ https://github.com/microsoft/terminal
 
@@ -21,7 +21,7 @@ SimpleTerm was created to provide a simple command line driven serial port liste
 * Soft reset Esp32 from SerialTerm during listening or on connection
 * Soft reset Raspberry PI Pico
 * Simple single file delployment
-* Added support for NET6.0
+* Runs on Windows, Linux and macOS, on x64 and arm64
 * Full key pass through, so full screen programs such as `vi`, `nano` and `htop` work over the connection
 
 ## Terminal keys

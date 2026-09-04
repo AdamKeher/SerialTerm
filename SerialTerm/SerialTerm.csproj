@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Authors>Adam Keher</Authors>
     <Company>AKsevenFour</Company>
     <Copyright>(c)2021 AKsevenFour</Copyright>
@@ -10,16 +10,35 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
+    <DebugType>embedded</DebugType>
+
+    <!-- The platforms a self contained single file can be published for. The
+         Windows only code - the console mode, the hint's screen buffer reads -
+         is guarded at runtime, so the other platforms build from the same
+         source. Pick one at publish time with -r, eg.
+
+           dotnet publish -c Release -r linux-x64
+
+         rather than pinning one here, which is what kept this Windows only. -->
+    <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <!-- Only a published build is a self contained single file. A plain build
+       stays framework dependent so it needs no runtime identifier, which is
+       what lets the test project reference this one. -->
+  <PropertyGroup Condition="'$(PublishSingleFileBuild)' == 'true' or '$(_IsPublishing)' == 'true'">
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SerialTerm.Tests" />
   </ItemGroup>
 
 </Project>
