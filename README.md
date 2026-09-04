@@ -1,4 +1,4 @@
-# SerialTerm
+﻿# SerialTerm
 A simple serial listener program for Windows Terminal command line replacement
 
 Get a precompiled single file version 0.2.0 @ https://github.com/AdamKeher/SerialTerm/releases
@@ -36,6 +36,9 @@ Ctrl+A d          Disconnect / Reconnect serial connection
 Ctrl+A i          Display serial port settings
 Ctrl+A e          Soft reset ESP32 by toggling RTS enabled
 Ctrl+A p          Reset PICO to programming mode by toggling 1200 baud connection
+Ctrl+A l          Start / stop logging the session to a file
+Ctrl+A v          Toggle hex view of incoming bytes
+Ctrl+A f          Freeze / resume the screen, output keeps being captured
 Ctrl+A c          Clear terminal screen
 Ctrl+A q          Exit terminal program
 Ctrl+A Ctrl+A     Send a literal Ctrl+A to the connected device
@@ -50,6 +53,62 @@ the device has drawn. Pass `--no-hint` to turn it off.
 Use `--escape-key` to move it somewhere else, for example `--escape-key ^]` for
 the telnet escape character. `--legacy-keys` additionally restores the original
 F1 - F5, Home and ESC shortcuts, but with it ESC no longer reaches the device.
+
+## Logging
+
+`--log session.log` appends everything the device sends to a file. `Ctrl+A l`
+starts and stops it mid session - with no `--log` given it picks a name from the
+port and the time, so capture can be started the moment something interesting
+happens.
+
+ANSI escape sequences are stripped so the log stays readable and greppable;
+`--log-raw` keeps them. The file is opened in append mode, so stopping and
+restarting during a session adds to it rather than truncating.
+
+## Freeze
+
+`Ctrl+A f` stops the screen moving so a stack trace can be read before the
+device scrolls it away. The port stays open and the bytes keep being collected -
+this is not `Ctrl+A d`, which closes the connection and loses whatever arrives.
+Press it again to resume, and everything held is painted in order.
+
+The buffer is capped at 1 MB. Past that the oldest bytes go and the resume
+message says how many, since the reason to freeze is almost always to read
+something that just happened.
+
+## Hex view
+
+`Ctrl+A v` switches the incoming stream to an offset / hex / ASCII dump:
+
+```
+00000000  01 03 00 00 00 02 c4 0b                          |........|
+00000008  01 03 04 00 0a 00 14 da  31                      |........1|
+00000011  64 6f 6e 65 0d 0a                                |done..|
+```
+
+Each read from the port ends its line, so the boundaries between bursts stay
+visible - which for a framed protocol is usually where the frame boundaries are.
+Offsets run from when the view was switched on.
+
+It is `Ctrl+A v` rather than the more obvious `Ctrl+A x` because `x` already
+quits.
+
+## Timestamps
+
+`--timestamp rel` prefixes each line from the device with seconds since
+connecting, `--timestamp abs` with the wall clock:
+
+```
+[     0.000] boot: ESP-IDF v5.1
+[     2.310] wifi: connected
+[    14.882] E (14882) watchdog: task not resetting
+```
+
+This is how you find out the watchdog fires 14.9 s after boot. Timestamps go to
+the log as well as the screen.
+
+They assume line oriented output. A full screen program on the device draws with
+cursor positioning rather than lines, so leave timestamps off while running one.
 
 ## Backspace and Enter
 
@@ -80,6 +139,9 @@ Options:
   -nh, --no-hint                                  Do not show the command hint line while the escape key is pending [default: False]
   -bs, --backspace <bs|del>                       Byte sent by the Backspace key, del is 0x7F and bs is 0x08 [default: del]
   -nl, --newline <cr|crlf|lf>                     Bytes sent by the Enter key [default: cr]
+  -l, --log <log>                                 Append everything the device sends to a file. Ctrl+A l starts and stops it during a session
+  -lr, --log-raw                                  Keep ANSI escape sequences in the log instead of stripping them [default: False]
+  -ts, --timestamp <abs|off|rel>                  Prefix each line from the device with a time, abs is the clock and rel is seconds since connecting [default: off]
   -db, --data-bits <5|6|7|8>                      Sets the standard length of data bits per byte [default: 8]
   -pa, --parity <Even|Mark|None|Odd|Space>        Sets the parity-checking protocol [default: None]
   -sb, --stop-bits <One|OnePointFive|Two>         Sets the standard number of stopbits per byte [default: One]

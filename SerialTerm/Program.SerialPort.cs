@@ -164,9 +164,6 @@ namespace TerminalConsole
             SayLine($"{port.PortName} Error: {e.EventType}");
         }
 
-        // Device output is passed straight through as bytes. Decoding it as text
-        // first would corrupt anything the device sends outside plain ASCII and
-        // is not needed - the console interprets the escape sequences itself.
         private static void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
         {
             SerialPort port = (SerialPort)sender;
@@ -182,17 +179,7 @@ namespace TerminalConsole
                 if (read <= 0)
                     return;
 
-                lock (_consoleLock)
-                {
-                    bool hint = _hintVisible;
-                    if (hint) HideHint();
-
-                    _standardOutput ??= Console.OpenStandardOutput();
-                    _standardOutput.Write(buffer, 0, read);
-                    _standardOutput.Flush();
-
-                    if (hint) ShowHint();
-                }
+                WriteDeviceBytes(buffer, read);
             }
             catch (TimeoutException) { }
             catch (InvalidOperationException) { }

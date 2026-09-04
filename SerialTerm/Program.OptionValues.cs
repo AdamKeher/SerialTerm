@@ -51,6 +51,13 @@ namespace TerminalConsole
             ["crlf"] = "crlf",
         };
 
+        private static readonly Dictionary<string, string> TimestampValues = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["off"] = "off",
+            ["abs"] = "abs",
+            ["rel"] = "rel",
+        };
+
         // An option whose value has to be one of a fixed set of names. Rejecting
         // the parse is the point: a validator that only prints lets the bad
         // value through to be silently replaced by a default further down.

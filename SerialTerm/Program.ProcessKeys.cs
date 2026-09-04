@@ -82,6 +82,18 @@ namespace TerminalConsole
                     paused = PicoProgrammingCommand();
                     break;
 
+                case 'l':
+                    ToggleLog();
+                    break;
+
+                case 'v':
+                    ToggleHexView();
+                    break;
+
+                case 'f':
+                    ToggleFreeze();
+                    break;
+
                 default:
                     // unknown commands are ignored rather than reported, so a
                     // full screen application on the device is not disturbed

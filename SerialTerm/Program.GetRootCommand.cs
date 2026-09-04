@@ -74,6 +74,24 @@ namespace TerminalConsole
                     "Do not show the command hint line while the escape key is pending");
             rootCommand.AddOption(noHintOption);
 
+            var logOption = new Option<string>(
+                    new string[] { "--log", "-l" },
+                    "Append everything the device sends to a file. Ctrl+A l starts and stops it during a session");
+            rootCommand.AddOption(logOption);
+
+            var logRawOption = new Option<bool>(
+                    new string[] { "--log-raw", "-lr" },
+                    getDefaultValue: () => false,
+                    "Keep ANSI escape sequences in the log instead of stripping them");
+            rootCommand.AddOption(logRawOption);
+
+            var timestampOption = NamedOption(
+                new string[] { "--timestamp", "-ts" },
+                "Prefix each line from the device with a time, abs is the clock and rel is seconds since connecting",
+                "off",
+                TimestampValues);
+            rootCommand.AddOption(timestampOption);
+
             var backspaceOption = NamedOption(
                 new string[] { "--backspace", "-bs" },
                 "Byte sent by the Backspace key, del is 0x7F and bs is 0x08",
@@ -137,13 +155,16 @@ namespace TerminalConsole
                         escapeKey = context.ParseResult.GetValueForOption(escapeKeyOption),
                         handshake = ValueOf(HandshakeValues, context.ParseResult.GetValueForOption(hsOption), Handshake.None),
                         legacyKeys = context.ParseResult.GetValueForOption(legacyKeysOption),
+                        log = context.ParseResult.GetValueForOption(logOption),
+                        logRaw = context.ParseResult.GetValueForOption(logRawOption),
                         newline = context.ParseResult.GetValueForOption(newlineOption),
                         noHint = context.ParseResult.GetValueForOption(noHintOption),
                         parity = ValueOf(ParityValues, context.ParseResult.GetValueForOption(parityOption), Parity.None),
                         port = context.ParseResult.GetValueForOption(portOption),
                         resetEsp32 = context.ParseResult.GetValueForOption(resetEsp32Option),
                         rts = context.ParseResult.GetValueForOption(disableRTSOption),
-                        stopBits = ValueOf(StopBitsValues, context.ParseResult.GetValueForOption(sbOption), StopBits.One)
+                        stopBits = ValueOf(StopBitsValues, context.ParseResult.GetValueForOption(sbOption), StopBits.One),
+                        timestamp = context.ParseResult.GetValueForOption(timestampOption)
                     };
                     action.Invoke(context, opts);
                 }
